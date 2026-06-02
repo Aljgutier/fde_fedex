@@ -1,1 +1,47 @@
+<<<<<<< Updated upstream
 .DS_Store
+=======
+# Python bytecode and cache directories (all subfolders)
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Cython-generated artifacts (all subfolders)
+*.c
+*.cpp
+*.so
+*.pyd
+*.pdb
+*.dll
+
+# Cython metadata and build artifacts
+*.pyxdep
+*.pyxbld
+cython_debug/
+**/cython_debug/
+
+# Python packaging/build outputs
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test/tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+>>>>>>> Stashed changes
