@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 echo "Deploying messy_project..."
-python main.py
+PYTHONPATH=src python -m messy_project.main

@@ -1,4 +1,4 @@
-from helpers import format_output, greet
+from messy_project.helpers import format_output, greet
 
 
 def test_greet_returns_hello():

@@ -1,4 +1,6 @@
+# Plan without Structured Prompt
 
+old_utils identified yes
 
 # Evaluation Methodology
 The four checks below are the ones you will apply to every plan for the rest
