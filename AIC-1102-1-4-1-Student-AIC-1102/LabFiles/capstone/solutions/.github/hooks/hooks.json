@@ -1,0 +1,11 @@
+{
+  "hooks": [
+    {
+      "matchers": [{ "type": "tool_use" }],
+      "preToolUse": {
+        "command": "python",
+        "args": ["hooks/pretooluse.py"]
+      }
+    }
+  ]
+}

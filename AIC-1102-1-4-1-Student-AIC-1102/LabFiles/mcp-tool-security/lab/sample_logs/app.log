@@ -1,0 +1,12 @@
+2026-01-15T10:00:00Z INFO Starting application
+2026-01-15T10:00:02Z INFO Server listening on port 5000
+2026-01-15T10:01:03Z ERROR Failed to connect to redis: connection refused
+2026-01-15T10:01:04Z ERROR Retrying redis connection (attempt 1/5)
+2026-01-15T10:01:08Z INFO Redis connection restored
+2026-01-15T10:05:23Z WARNING Rate limit exceeded for user u42
+2026-01-15T10:10:15Z ERROR Cleanup job failed: permission denied on /tmp/sessions/
+2026-01-15T10:15:44Z WARNING Disk usage at 82% on /var/log
+2026-01-15T10:30:00Z ERROR Database connection timeout after 10s
+2026-01-15T10:30:15Z INFO Database connection restored
+2026-01-15T11:00:00Z INFO Health check passed
+2026-01-15T11:15:02Z INFO Application stopped
