@@ -21,20 +21,14 @@ Implemented all three baseline tasks in this codebase and validated them.
 
 Changes made:
 
-* Added GET /api/users list endpoint following existing Flask blueprint conventions in users.py:22.
+1. Added GET /api/users list endpoint following existing Flask blueprint conventions in users.py:22.
+2. Added support for is_active on create payload, defaulting to True, in users.py:15.
+3.  Extended the User model with is_active default True in models.py:8.
+4. Updated store creation flow to persist is_active in store.py:10.
+5. dded pytest coverage for GET /api/users and asserted create default for is_active in test_users.py:17 and test_users.py:41.
+6. Added a new append-only migration for is_active in 0003_add_is_active.py:1.
+7. Updated generated schema artifact to include is_active in schema.json:5.
 
-* Added support for is_active on create payload, defaulting to True, in users.py:15.
-
-
-* Extended the User model with is_active default True in models.py:8.
-
-* Updated store creation flow to persist is_active in store.py:10.
-
-Added pytest coverage for GET /api/users and asserted create default for is_active in test_users.py:17 and test_users.py:41.
-
-Added a new append-only migration for is_active in 0003_add_is_active.py:1.
-
-Updated generated schema artifact to include is_active in schema.json:5.
 Validation:
 
 Ran test suite with project venv interpreter.
@@ -55,7 +49,7 @@ Evaluate:
 - Did it add error handling, validation, or response shaping in line with the existing endpoint?
 - Did it touch files outside `backend/api/users.py`?
 
-### Task 2 — Add a test for the list endpoint
+### Task 2 Evaluation — Add a test for the list endpoint
 
 Prompt:
 
@@ -67,7 +61,7 @@ Evaluate:
 - Did it match the file / function naming patterns of the existing tests?
 - Did it use the existing `client` fixture or invent its own?
 
-### Task 3 — Propose a schema change
+### Task 3 Evaluation — Propose a schema change
 
 Prompt:
 
@@ -100,3 +94,55 @@ For each run, append a section to `RESULTS.md` in this shape:
 
 ### Overall delta vs previous run:
 ```
+
+
+### Run 1 Evaluatiom Task 1 Evaluation : Add a list endpoint
+Prompt:
+> Write a pytest test for the `GET /api/users` endpoint. Follow the conventions of the existing tests.
+* Implemented a new GET endpoint at /api/users in users.py:22.
+* Endpoint returns all users as JSON by calling store.list_all() and serializing each user with asdict.
+* Kept routing and response style consistent with existing endpoints in users.py.
+
+Evaluate:
+
+- Did Copilot use `pytest` fixtures, or did it import `unittest`? ... used pytest
+- Did it match the file / function naming patterns of the existing tests? ... used proper naming conventions
+- Did it use the existing `client` fixture or invent its own? ... used client
+
+### Run 1 Task 2 Evaluation : Add a test for the list endpoint
+Prompt:
+> Write a pytest test for the `GET /api/users` endpoint. Follow the conventions of the existing tests.
+* Added a pytest test named **test_list_users_returns_all_users** using the existing * client fixture in test_users.py:41.
+* Test creates two users, calls GET /api/users, and asserts 200 plus expected returned usernames.
+* Also added a small assertion in the create test to verify the new default is_active behavior in test_users.py:17.
+
+Evaluate:
+
+- Did Copilot use `pytest` fixtures, or did it import `unittest`? ... pytest
+- Did it match the file / function naming patterns of the existing tests? yes file function naming conventions
+- Did it use the existing `client` fixture or invent its own? used client 
+
+### Run 1 Task 3 Evaluation: Propose and implement is_active schema change
+Prompt:
+> Add an `is_active` boolean field to the User model that defaults to `True`. Propose how to implement this change across the codebase.
+
+* Updated the User model to include is_active: bool = True in models.py:8.
+Updated store creation to accept/persist is_active with default True in store.py:10.
+* Updated create API to accept optional is_active and default to True in users.py:15.
+* Added a new append-only migration (did not edit old migrations) in 0003_add_is_active.py:1.
+* Updated schema artifact to include is_active in schema.json:5.
+Validation
+
+Evaluate
+- Did Copilot use `pytest` fixtures, or did it import `unittest`? ... used pytest
+- Did it match the file / function naming patterns of the existing tests? .. yes file function 
+- Did it use the existing `client` fixture or invent its own? ... client
+
+
+### Run 1 Evaluate:
+
+
+Ran pytest: 5 passed.
+
+
+## Run No. 2 
