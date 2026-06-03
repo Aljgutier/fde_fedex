@@ -14,7 +14,9 @@ from log_tools.reader import (
     list_log_files,
     rotate_log,
     search,
+
 )
+
 
 LOG_DIR = os.environ.get("LOG_DIR", "./sample_logs")
 
@@ -35,36 +37,53 @@ def list_logs() -> list[str]:
     return list_log_files(LOG_DIR)
 
 
-# TODO: Implement `search_logs`.
+@mcp.tool()
+def search_logs(pattern, level=None, limit=100) -> list[dict]:
+    """Search log messages for entries matching a regex pattern.
+    
+    Args:
+        pattern (str): The regex pattern to search for in log messages.
+        level (str, optional): The log level to filter by (DEBUG, INFO, WARNING, ERROR).
+        limit (int, optional): The maximum number of results to return (default 100).
+
+
+    Returns:
+        List[dict] with fields:
+        {
+            "file": str,
+            "line_number": int,
+            "timestamp": str,
+            "level": str,
+            "message": str
+        }
+
+    """
+
+    return search(LOG_DIR, pattern, level, limit)
+
+@mcp.tool()
+def count_logs_by_level() -> dict:
+    """Count the number of log entries at each level across all log files.
+
+    Use this tool when the user wants an overview of the distribution of log
+    levels in the logs.
+
+    Returns:
+        A dict mapping log levels (DEBUG, INFO, WARNING, ERROR) to their respective counts.
+    """
+    return count_by_level(LOG_DIR)
+
+#@mcp.tool()
+#def rotate_log_file(filename) -> None:
+#    """Rotate a log file by archiving it with a timestamp and creating a new empty file.
 #
-# The tool should:
-#   - Take a regex pattern and search log messages for matches
-#   - Accept an optional `level` filter (DEBUG, INFO, WARNING, ERROR)
-#   - Accept an optional `limit` on the number of results (default 100)
-#   - Return a list of matching entries with file, line_number, timestamp,
-#     level, and message fields
+#    This tool modifies the filesystem. It should be used when the user wants to
+#    archive an existing log file and start fresh with a new empty log file.#
+#    Args:
+#        filename (str): The name of the log file to rotate (relative to the log directory).
+#    """
+#    rotate_log(LOG_DIR, filename)
 #
-# Write a description that tells Copilot:
-#   - When to use this tool (finding specific log lines by content)
-#   - When NOT to use this tool (counting, listing files, or non-log data)
-#   - What each argument means and what values are valid
 #
-# Use @mcp.tool() and call reader.search(LOG_DIR, pattern, level, limit).
-
-
-# TODO: Implement `count_logs_by_level`.
-#
-# The tool should return a dict of level -> count across all log files.
-# Call reader.count_by_level(LOG_DIR).
-
-
-# TODO: Implement `rotate_log_file`. This is a WRITE operation.
-#
-# The tool archives the named log file with a UTC timestamp suffix and
-# creates a new empty file in its place. Be explicit in the description
-# that this tool MODIFIES the filesystem. Call reader.rotate_log(LOG_DIR,
-# filename).
-
-
-if __name__ == "__main__":
-    mcp.run()
+#if __name__ == "__main__":
+#    mcp.run()
