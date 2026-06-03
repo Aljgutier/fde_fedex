@@ -20,13 +20,6 @@ Prompt (issue in Chat, Agent Mode, whichever matches your workflow):
 
 > Add a `GET /api/users` endpoint to the backend that returns all users as JSON. Follow the conventions of the existing endpoints.
 
-Evaluate:
-
-- Did Copilot use Flask (matching the codebase) or propose another framework?
-- Did it match the naming conventions of the existing file?
-- Did it add error handling, validation, or response shaping in line with the existing endpoint?
-- Did it touch files outside `backend/api/users.py`?
-
 ## Task 2 — Add a test for the list endpoint
 
 Prompt:
