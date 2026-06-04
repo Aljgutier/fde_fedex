@@ -73,17 +73,21 @@ def count_logs_by_level() -> dict:
     """
     return count_by_level(LOG_DIR)
 
-#@mcp.tool()
-#def rotate_log_file(filename) -> None:
-#    """Rotate a log file by archiving it with a timestamp and creating a new empty file.
-#
-#    This tool modifies the filesystem. It should be used when the user wants to
-#    archive an existing log file and start fresh with a new empty log file.#
-#    Args:
-#        filename (str): The name of the log file to rotate (relative to the log directory).
-#    """
-#    rotate_log(LOG_DIR, filename)
-#
-#
-#if __name__ == "__main__":
-#    mcp.run()
+@mcp.tool()
+def rotate_log_file(filename) -> None:
+    """WRITE (Rotate) a log file by archiving it with a timestamp and creating a new empty file.
+
+    This tool modifies the filesystem. DO NOT use as part of read flow.s It should be used when the user wants to
+    archive an existing log file and start fresh with a new empty log file.
+
+    Args:
+        filename (str): The name of the log file to rotate (relative to the log directory).
+
+    Returns:
+        None. The file is rotated in place on disk and no value is returned.
+    """
+    rotate_log(LOG_DIR, filename)
+
+
+if __name__ == "__main__":
+    mcp.run()
