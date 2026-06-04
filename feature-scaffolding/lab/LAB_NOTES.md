@@ -8,7 +8,7 @@ The -e ".[dev]" installs the project in editable mode with the dev extras. Pytes
 
 ## Hard Criteria
 
-### Directory separation
+Directory separation
 
 - [✓] Each top-level directory has a single responsibility  
   - `domain`, `application`, `adapters`, `api`, `bootstrap` are clearly separated
@@ -24,7 +24,7 @@ The -e ".[dev]" installs the project in editable mode with the dev extras. Pytes
 
 ---
 
-### Dependency direction
+Dependency direction
 
 - [✓] Domain depends on no internal packages  
   - `domain/` only uses standard library and its own modules
@@ -39,7 +39,7 @@ The -e ".[dev]" installs the project in editable mode with the dev extras. Pytes
 
 ---
 
-### Interface definition
+ Interface definition
 
 - [✓] Explicit interfaces exist for substitutable components  
   - Channels, repositories, and retry scheduler use `Protocol`
@@ -54,7 +54,7 @@ The -e ".[dev]" installs the project in editable mode with the dev extras. Pytes
 
 ---
 
-### Naming
+Naming
 
 - [✓] Module names describe roles  
   - `dispatch_service`, `retry_scheduler`, `repositories`, etc. are clear and role-based
@@ -64,7 +64,7 @@ The -e ".[dev]" installs the project in editable mode with the dev extras. Pytes
 
 ---
 
-### Test layout
+Test layout
 
 - [✓] Tests mirror source structure (reasonably well)  
   - Unit tests align with domain/application modules
@@ -75,60 +75,60 @@ The -e ".[dev]" installs the project in editable mode with the dev extras. Pytes
 
 ---
 
-## Hard Criteria Summary
+Hard Criteria Summary
 
 - Passed: **13 / 14**
 - Main gap: **missing static interface conformance checks**
 
 ---
 
-## Soft Criteria (Judgment Observations)
+ Soft Criteria (Judgment Observations)
 
-- **Retry policy location:**  
+- Retry policy location:**  
   - Split between `domain/status_rules.py` and scheduler adapter  
   - ✅ Reasonable: business rules in domain, execution in adapter
 
-- **Audit log placement:**  
+- Audit log placement:**  
   - Separate repository (`AuditRepository`)  
   - ✅ Clean separation, aligns with requirements
 
-- **Adapter organization:**  
+- Adapter organization:**  
   - Clearly separated inbound (`api`) and outbound (`adapters`)  
   - ✅ Strong hexagonal adherence
 
-- **Model sharing strategy:**  
+- Model sharing strategy:**  
   - Shared domain models across layers  
   - ✅ Simple and effective for this scope (no DTO over-fragmentation)
 
 ---
 
-## Pattern-Specific Checks (Hexagonal)
+Pattern-Specific Checks (Hexagonal)
 
 - [✓] Domain is fully isolated  
 - [✓] Ports live in application layer  
 - [✓] Adapters depend on ports, not vice versa  
 - [✓] Composition root (`bootstrap/container.py`) centralizes wiring  
 
-✅ **Fully compliant with Hexagonal pattern expectations**
+**Fully compliant with Hexagonal pattern expectations**
 
 ---
 
-## Overall Evaluation
+Overall Evaluation
 
-### 1. Directional discipline — ✅ YES
+ 1. Directional discipline — ✅ YES
 Dependencies are clean, intentional, and correctly inverted:
 - Everything points inward toward `application` and `domain`
 - No violations (e.g., API or adapters leaking inward)
 
 ---
 
-### 2. Adapter swap capability — ✅ YES
+2. Adapter swap capability — ✅ YES
 - Channels, repositories, and retry scheduler are all defined as ports
 - Replacing implementations would **not require modifying core logic**
 
 ---
 
-### 3. Clarity of structure — ✅ YES (with minor caveat)
+3. Clarity of structure — ✅ YES (with minor caveat)
 - Directory names are meaningful and standard for hexagonal architecture
 - However:
   - Terms like `domain` and `application` may be less intuitive to beginners (as you noted earlier)
@@ -136,7 +136,7 @@ Dependencies are clean, intentional, and correctly inverted:
 
 ---
 
-## Key Strengths
+Key Strengths
 
 - Strong adherence to **Hexagonal Architecture**
 - Excellent **separation of concerns**
@@ -146,7 +146,7 @@ Dependencies are clean, intentional, and correctly inverted:
 
 ---
 
-## Key Weaknesses (Minor)
+Key Weaknesses (Minor)
 
 1. Missing **static type conformance checks**
 2. Slightly **concept-heavy naming** (domain/application instead of more intuitive alternatives like business_concepts/service)
@@ -154,7 +154,7 @@ Dependencies are clean, intentional, and correctly inverted:
 
 ---
 
-## Final Verdict
+Final Verdict
 
 ✅ **High-quality scaffolding**
 
@@ -168,3 +168,60 @@ If anything were to be improved, it would be:
 - Minor type-safety enhancements
 
 Overall, this is a **very strong, production-grade design** rather than just a minimal lab scaffold.
+
+
+# Implementation Notes
+
+    Implemented the approved plan end-to-end, including scaffold, typed interfaces, hexagonal boundaries, and runnable baseline behavior.
+    
+    ## What I implemented
+    
+    1. Full package and test layout exactly as planned under notification_dispatcher and tests.
+    2. Domain model and policy types in:
+       - enums.py
+       - models.py
+       - status_rules.py
+    3. Application DTOs and ports in:
+       - dto.py
+       - channels.py
+       - repositories.py
+       - retry_scheduler.py
+    4. Use case services implemented in:
+       - dispatch_service.py
+       - query_service.py
+    5. Stub channel adapters and in-memory infra adapters in:
+       - email_stub.py
+       - sms_stub.py
+       - push_stub.py
+       - in_memory_notification_repository.py
+       - in_memory_audit_repository.py
+       - in_process_retry_scheduler.py
+    6. Thin Flask API + composition root in:
+       - flask_app.py
+       - container.py
+    7. Required test layout with placeholder tests in:
+       - test_dispatch_service.py
+       - test_status_rules.py
+       - test_retry_policy.py
+       - test_notifications_api.py
+    
+    ## Behavior now present
+    
+    1. POST /notifications accepts request payload and invokes dispatch workflow.
+    2. GET /notifications/<id> returns current status or 404.
+    3. GET /notifications?recipient=<id> lists recipient notifications.
+    4. Status lifecycle values are modeled, including retrying.
+    5. Retry policy helpers are present with exponential backoff rules.
+    6. Channel and status transitions produce audit records via separated audit repository port.
+    7. Channel/persistence/retry are isolated behind ports and implemented via adapters.
+    
+    ## Validation
+    
+    1. Static diagnostics: no errors found.
+    2. Tests: 4 passed with pytest.
+    
+    ## Natural next steps
+    
+    1. Replace placeholder tests with real unit and integration assertions for lifecycle, retries, and audit entries.
+    2. Add a small app entrypoint so the Flask app can be run directly from command line.
+    3. Expose audit retrieval endpoint if you want audit observability during manual testing.
