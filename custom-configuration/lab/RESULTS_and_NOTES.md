@@ -15,7 +15,7 @@ Copilot output has been drifting off-convention: suggestions propose FastAPI aga
 python -m pytest
 ```
 
-## Baseline no Configuration ... Run No. 1
+## Baseline no Configuration ... Run No. 1 No Configuration
 
 Implemented all three baseline tasks in this codebase and validated them.
 
@@ -96,7 +96,8 @@ For each run, append a section to `RESULTS.md` in this shape:
 ```
 
 
-### Run 1 Evaluatiom Task 1 Evaluation : Add a list endpoint
+### Run 1 No Config 
+***Evaluatiom Task 1 Evaluation : Add a list endpoint***
 Prompt:
 > Write a pytest test for the `GET /api/users` endpoint. Follow the conventions of the existing tests.
 * Implemented a new GET endpoint at /api/users in users.py:22.
@@ -109,7 +110,7 @@ Evaluate:
 - Did it match the file / function naming patterns of the existing tests? ... used proper naming conventions
 - Did it use the existing `client` fixture or invent its own? ... used client
 
-### Run 1 Task 2 Evaluation : Add a test for the list endpoint
+***Run 1 No Config Task 2 Evaluation : Add a test for the list endpoint***
 Prompt:
 > Write a pytest test for the `GET /api/users` endpoint. Follow the conventions of the existing tests.
 * Added a pytest test named **test_list_users_returns_all_users** using the existing * client fixture in test_users.py:41.
@@ -122,7 +123,7 @@ Evaluate:
 - Did it match the file / function naming patterns of the existing tests? yes file function naming conventions
 - Did it use the existing `client` fixture or invent its own? used client 
 
-### Run 1 Task 3 Evaluation: Propose and implement is_active schema change
+***Run 1 No Config Task 3 Evaluation: Propose and implement is_active schema change***
 Prompt:
 > Add an `is_active` boolean field to the User model that defaults to `True`. Propose how to implement this change across the codebase.
 
@@ -139,10 +140,33 @@ Evaluate
 - Did it use the existing `client` fixture or invent its own? ... client
 
 
-### Run 1 Evaluate:
+***Run 1 No Config Pytests***
 
 
 Ran pytest: 5 passed.
 
 
-## Run No. 2 
+## Run No. 2 Repository Wide Conventions
+* copilot-instructions.md
+* this would typically be at the top level directory  of the project
+* A rule like "Flask, not FastAPI" belongs here because it is universal; 
+
+
+## Path Specific Rules
+* A rule that makes sense inside backend/ is distracting inside tests/ and probably wrong inside frontend/
+
+* For example .instructions.md
+```sh
+---
+applyTo: "backend/**/*.py"
+---
+
+# Backend Instructions
+...
+
+```
+
+* Use Copilot Chat on a backend file and a test file separately. Ask something that should trigger each instruction file. Confirm that the backend rules do not fire in test files and vice versa.
+* Run the baseline tasks again. Append ## Run 3: after path-specific instructions to RESULTS.md.
+
+## 5.3.4 Agent Behavioral Guidance

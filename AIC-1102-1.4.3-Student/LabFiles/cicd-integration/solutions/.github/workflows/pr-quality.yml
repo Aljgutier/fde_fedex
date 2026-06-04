@@ -1,0 +1,73 @@
+name: PR Quality Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot@latest
+
+      - name: Collect PR diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD --unified=3 > pr.diff
+          # Cap diff size — very large diffs dilute the summary quality
+          # and inflate token usage. 200 KB is enough for a normal PR.
+          head -c 204800 pr.diff > pr-capped.diff
+
+      - name: Skip if diff is empty
+        id: check_diff
+        run: |
+          if [ ! -s pr-capped.diff ]; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "empty=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate quality summary
+        if: steps.check_diff.outputs.empty == 'false'
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        run: |
+          PROMPT=$(cat <<'PROMPT_EOF'
+          Review the pull request diff below. Produce a concise markdown
+          code review with these sections in order, using these exact
+          headings:
+
+          ## Overview
+          Two or three sentences describing what the PR changes.
+
+          ## Strengths
+          Bulleted list. Be specific — cite the file and what the change does.
+
+          ## Concerns
+          Bulleted list. Each item names a specific file and line range
+          and states the concern clearly. If there are no concerns, write
+          "None identified".
+
+          ## Suggestions
+          Bulleted list of actionable suggestions. If no suggestions,
+          write "None".
+
+          Do not invent files or code that is not in the diff. Do not
+          evaluate files that do not appear in the diff.
+          PROMPT_EOF
+          )
+          cat pr-capped.diff | copilot -p "$PROMPT" > quality-summary.md
+
+      - name: Post summary as PR comment
+        if: steps.check_diff.outputs.empty == 'false'
+        run: gh pr comment "$PR_NUMBER" --body-file quality-summary.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
