@@ -170,3 +170,9 @@ applyTo: "backend/**/*.py"
 * Run the baseline tasks again. Append ## Run 3: after path-specific instructions to RESULTS.md.
 
 ## 5.3.4 Agent Behavioral Guidance
+
+AGENTS.md is the layer that most often gets miscategorized. It is not where you put style preferences or naming conventions — those belong in copilot-instructions.md. AGENTS.md is for constraints on what the agent is allowed to do autonomously: which directories are off-limits, which actions require confirmation, which pre-action checks are mandatory. 
+
+The distinction matters because Chat reads copilot-instructions.md and Agents read both — a rule in the wrong file fires at the wrong time.
+
+The test for whether a rule belongs here: does this rule prevent harm from something the agent could do without a human noticing? If yes, it belongs in AGENTS.md. 

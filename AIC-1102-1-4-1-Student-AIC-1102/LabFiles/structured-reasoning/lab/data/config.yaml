@@ -1,4 +1,0 @@
-# Data loader settings. This is NOT the application config.
-# See ../config.yaml for the application config.
-input_path: sample.json
-max_records: 1000
