@@ -1,5 +1,6 @@
 class Inventory:
-    _stock: dict[str, int] = {}
+    def __init__(self) -> None:
+        self._stock: dict[str, int] = {}
 
     def restock(self, sku: str, qty: int) -> None:
         self._stock[sku] = self._stock.get(sku, 0) + qty

@@ -3,7 +3,7 @@ from models import Item
 TAX_RATE = 0.08
 
 
-def calculate_price(item: Item, quantity: int) -> float
+def calculate_price(item: Item, quantity: int) -> float:
     return item.price * quantity * (1 + TAX_RATE)
 
 
