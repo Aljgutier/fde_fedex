@@ -77,6 +77,29 @@ h2 {
     line-height: 1.4;
 }
 
+.size-label {
+    display: block;
+    color: #a0a0b0;
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.size-select {
+    width: 100%;
+    margin-bottom: 0.7rem;
+    background: #0f3460;
+    color: #e0e0e0;
+    border: 1px solid #1f4a78;
+    border-radius: 4px;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.85rem;
+}
+
+.size-select:focus {
+    outline: none;
+    border-color: #e94560;
+}
+
 .menu-card .price {
     color: #e94560;
     font-weight: bold;
