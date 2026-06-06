@@ -1,4 +1,23 @@
 const API = "";
+const ACTIVE_STATUSES = ["pending", "preparing", "ready"];
+const STATUS_LABELS = {
+    pending: "Pending",
+    preparing: "Preparing",
+    ready: "Ready",
+    completed: "Completed",
+    cancelled: "Cancelled",
+};
+
+const STATUS_ACTIONS = {
+    pending: [
+        { label: "Start Preparing", target: "preparing", className: "advance-btn" },
+        { label: "Cancel", target: "cancelled", className: "cancel-btn" },
+    ],
+    preparing: [{ label: "Mark Ready", target: "ready", className: "advance-btn" }],
+    ready: [{ label: "Mark Completed", target: "completed", className: "advance-btn" }],
+    completed: [],
+    cancelled: [],
+};
 
 async function loadMenu() {
     const container = document.getElementById("menu-list");
@@ -77,16 +96,66 @@ async function placeOrder(itemId) {
     }
 }
 
-async function cancelOrder(orderId) {
+async function updateOrderStatus(orderId, status) {
     try {
-        const res = await fetch(`${API}/api/orders/${orderId}`, {
-            method: "DELETE",
+        const res = await fetch(`${API}/api/orders/${orderId}/status`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: status }),
         });
-        if (!res.ok) throw new Error("Cancel failed");
+        if (!res.ok) {
+            let detail = "Status update failed";
+            try {
+                const errorData = await res.json();
+                if (errorData.detail) detail = errorData.detail;
+            } catch {
+                // Ignore parse issues and use fallback detail.
+            }
+            throw new Error(detail);
+        }
         await loadOrders();
     } catch (err) {
-        alert("Failed to cancel order: " + err.message);
+        alert("Failed to update order: " + err.message);
     }
+}
+
+function getStatusActions(order) {
+    return STATUS_ACTIONS[order.status] || [];
+}
+
+function renderOrder(order) {
+    const actionsHtml = getStatusActions(order)
+        .map(
+            (action) =>
+                `<button class="${action.className}" onclick="updateOrderStatus(${order.order_id}, '${action.target}')">${action.label}</button>`
+        )
+        .join("");
+
+    return `
+        <div class="order-item">
+            <div class="order-info">
+                <span class="order-id">#${order.order_id}</span>
+                <span class="order-items">${order.items.join(", ")}</span>
+                <span class="order-price">$${order.total_price.toFixed(2)}</span>
+            </div>
+            <div class="order-meta">
+                <span class="order-status status-${order.status}">${STATUS_LABELS[order.status] || order.status}</span>
+                <div class="order-actions">${actionsHtml}</div>
+            </div>
+        </div>
+    `;
+}
+
+function renderOrderGroup(title, orders, emptyMessage) {
+    const rows = orders.map(renderOrder).join("");
+    const body = rows || `<p class="empty-state">${emptyMessage}</p>`;
+
+    return `
+        <section class="orders-group">
+            <h3>${title}</h3>
+            ${body}
+        </section>
+    `;
 }
 
 async function loadOrders() {
@@ -100,25 +169,24 @@ async function loadOrders() {
             return;
         }
 
-        container.innerHTML = "";
-        data.orders.forEach((order) => {
-            const div = document.createElement("div");
-            div.className = "order-item";
-            div.innerHTML = `
-                <div class="order-info">
-                    <span class="order-id">#${order.order_id}</span>
-                    <span class="order-items">${order.items.join(", ")}</span>
-                    <span class="order-price">$${order.total_price.toFixed(2)}</span>
-                </div>
-                <span class="order-status">${order.status}</span>
-                ${
-                    order.status === "pending"
-                        ? `<button class="cancel-btn" onclick="cancelOrder(${order.order_id})">Cancel</button>`
-                        : ""
-                }
-            `;
-            container.appendChild(div);
-        });
+        const activeOrders = data.orders.filter((order) =>
+            ACTIVE_STATUSES.includes(order.status)
+        );
+        const completedOrders = data.orders.filter(
+            (order) => order.status === "completed"
+        );
+
+        container.innerHTML =
+            renderOrderGroup(
+                "Active",
+                activeOrders,
+                "No active orders in the queue."
+            ) +
+            renderOrderGroup(
+                "Completed",
+                completedOrders,
+                "No completed orders yet."
+            );
     } catch (err) {
         container.innerHTML = `<p class="empty-state">Failed to load orders.</p>`;
     }

@@ -33,6 +33,10 @@ class OrderRequest(BaseModel):
     size: str
 
 
+class StatusUpdateRequest(BaseModel):
+    status: str
+
+
 # --- Routes ---
 
 @app.get("/")
@@ -60,9 +64,25 @@ async def list_orders():
     return {"orders": [asdict(o) for o in orders]}
 
 
+@app.patch("/api/orders/{order_id}/status")
+async def update_order_status(order_id: int, request: StatusUpdateRequest):
+    outcome, order, message = order_service.update_order_status(order_id, request.status)
+
+    if outcome == "not_found":
+        raise HTTPException(status_code=404, detail=message)
+    if outcome == "invalid_status":
+        raise HTTPException(status_code=400, detail=message)
+    if outcome == "invalid_transition":
+        raise HTTPException(status_code=409, detail=message)
+
+    return {"order": asdict(order)}
+
+
 @app.delete("/api/orders/{order_id}")
 async def cancel_order(order_id: int):
-    success = order_service.cancel_order(order_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Order not found or cannot be cancelled")
+    outcome, _, message = order_service.update_order_status(order_id, "cancelled")
+    if outcome == "not_found":
+        raise HTTPException(status_code=404, detail=message)
+    if outcome == "invalid_transition":
+        raise HTTPException(status_code=409, detail=message)
     return {"message": f"Order {order_id} cancelled"}
