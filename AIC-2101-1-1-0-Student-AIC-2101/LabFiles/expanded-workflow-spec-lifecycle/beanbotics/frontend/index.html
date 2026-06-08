@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeanBotics</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>&#9749; BeanBotics</h1>
+        <p class="tagline">AI-Powered Coffee, Perfectly Brewed</p>
+    </header>
+
+    <main>
+        <section id="menu-section">
+            <h2>Menu</h2>
+            <div id="menu-list" class="menu-grid">
+                <p class="loading">Loading menu...</p>
+            </div>
+        </section>
+
+        <section id="orders-section">
+            <h2>Order Queue</h2>
+            <div id="orders-list">
+                <p class="empty-state">No orders yet. Pick a drink from the menu!</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>BeanBotics Corporation &mdash; Spec-Driven Development Lab</p>
+    </footer>
+
+    <div id="confirm-overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <h3>Review Your Order</h3>
+            <div id="confirm-summary"></div>
+            <div class="overlay-actions">
+                <button id="confirm-back-btn" class="back-btn">Go Back</button>
+                <button id="confirm-order-btn" class="confirm-btn">Confirm Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

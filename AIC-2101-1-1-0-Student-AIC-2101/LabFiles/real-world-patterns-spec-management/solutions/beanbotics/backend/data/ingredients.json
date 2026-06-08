@@ -1,0 +1,18 @@
+{
+  "ingredients": [
+    { "id": "espresso", "name": "Espresso", "unit": "shot", "cost_per_unit": 0.40 },
+    { "id": "milk", "name": "Whole Milk", "unit": "oz", "cost_per_unit": 0.08 },
+    { "id": "chocolate", "name": "Chocolate Syrup", "unit": "oz", "cost_per_unit": 0.15 },
+    { "id": "whipped-cream", "name": "Whipped Cream", "unit": "serving", "cost_per_unit": 0.30 },
+    { "id": "oat-milk", "name": "Oat Milk", "unit": "oz", "cost_per_unit": 0.15 },
+    { "id": "almond-milk", "name": "Almond Milk", "unit": "oz", "cost_per_unit": 0.12 },
+    { "id": "soy-milk", "name": "Soy Milk", "unit": "oz", "cost_per_unit": 0.10 }
+  ],
+  "customization_mappings": {
+    "extra-shot": { "espresso": 1 },
+    "oat-milk": { "oat-milk": 8 },
+    "almond-milk": { "almond-milk": 8 },
+    "soy-milk": { "soy-milk": 8 },
+    "whipped-cream": { "whipped-cream": 1 }
+  }
+}

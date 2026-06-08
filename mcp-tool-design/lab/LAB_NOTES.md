@@ -7,6 +7,31 @@ pytest needs to be run with
 pytest -m pytest
 ```
 
+
+# Agent - MCP Pattern
+
+Example
+Agent and MCP server on separate deployment
+```text
+Docker container
+│
+├── Agent
+└── MCP client
+        ↓
+   WebSocket / HTTP
+        ↓
+External MCP servers
+```
+
+Another Example
+```text
+Company A: MCP Server (service provider)
+        ↑
+   network/API boundary
+        ↓
+Company B: Agent (consumer)
+```
+
 # TOOL SELECTION RESULTS
 
 * overall seemed to work well
