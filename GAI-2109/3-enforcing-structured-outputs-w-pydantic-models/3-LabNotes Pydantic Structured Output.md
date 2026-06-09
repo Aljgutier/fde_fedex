@@ -29,3 +29,7 @@ Objective: Exercise a product review analysis agent that enforces structured Pyd
 Expected Outcome: A working agent that parses customer reviews into validated DetailedReviewAnalysis objects with constrained fields, a retry wrapper that re-prompts with clearer instructions when validation fails, and a Union-typed agent that returns different structured formats for product versus service feedback.
 
 
+Progress
+* review_agent.py
+* retry_analyzer.py
+* union_analyzer.py
