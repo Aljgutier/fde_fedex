@@ -58,3 +58,9 @@ Save it to docs/explore-status-lifecycle.md.
 * invoke the apply command ... /opsx-apply
 * verify the ... manually
 * arvhive the feature ... /opsx-archive
+
+
+Completed three coding exercises
+* basic_agent.py
+* challeng1.py
+* challenge2.py
