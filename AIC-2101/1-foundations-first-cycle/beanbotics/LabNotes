@@ -1,0 +1,57 @@
+# LabNotes 
+
+openspec feature cycle
+* propose-apply-arvhive cycle
+
+* In this lab you are given a feature to implement. In the next lab you explore and 
+
+* initialize openspec
+```sh
+openspec init
+```
+
+This creates openspec directory
+
+creates config.yaml ... replace the contents with the following
+
+```text
+schema: spec-driven
+
+context: |
+  BeanBotics is an AI-themed coffee ordering web application.
+  Tech stack: Python 3.10+, FastAPI, vanilla HTML/CSS/JavaScript frontend.
+  Backend: FastAPI app in backend/ with service layer pattern.
+  Frontend: Single-page app in frontend/ using fetch API for all server calls.
+  Data: Menu items loaded from backend/data/menu.json. Orders stored in memory.
+  No database, no authentication, no payment processing.
+  API endpoints: GET /api/menu, POST /api/orders, GET /api/orders, DELETE /api/orders/{id}.
+```
+
+Also checkout all the files in the openspec directory
+
+Agents.md
+
+* AGENTS.md: already in the project. You (the developer) write and maintain this. It tells your agent about the project: tech stack, structure, conventions. AGENTS.md is an emerging cross-agent convention that most listed agents read directly; a few (like Claude Code) also read a tool-specific file such as CLAUDE.md, but AGENTS.md is the agent-neutral source of truth in this course.
+
+
+* Explore the code base ... ask the agent
+```text
+What would need to change to let customers choose between small, medium, and large sizes when ordering?
+```
+
+```
+/opsx-propose add-drink-size-selection
+
+Add a size selector (small, medium, large) to the order form so customers can choose a size before placing an order. The selected size must dynamically update the displayed price and be included in the order submission payload.
+
+Out of scope:
+- Drink customizations (milk, flavor, extra shots)
+- Menu changes
+- New backend endpoints
+- Any UI changes beyond the size selector and price display
+
+```
+
+* review featurews
+* /opsx-apply
+* /opsx-archive

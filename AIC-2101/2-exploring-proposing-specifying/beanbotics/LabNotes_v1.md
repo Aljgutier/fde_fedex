@@ -24,6 +24,7 @@ propose - apply - archive
 * erase context  
 * /opsx-propose ... notice save to below ... PROMPT
 ```text
+/opsx-propose add-order-status-lifecycle
 Good analysis. Let's capture this as a draft proposal summary.
 Here are my decisions on the open questions:
 
