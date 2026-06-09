@@ -112,5 +112,15 @@ def compare_models(query: str):
 
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    query = "Write a blog outline about AI agents"
+
+    result = agent.run_sync(query)
+    print(result.output)
+
+    usage = result.usage()
+    total_tokens = usage.total_tokens if usage is not None else "N/A"
+    print(f"Total tokens used: {total_tokens}")
+
+    test_temperature(0.0, query)
+    test_temperature(0.7, query)
+    test_temperature(1.5, query)

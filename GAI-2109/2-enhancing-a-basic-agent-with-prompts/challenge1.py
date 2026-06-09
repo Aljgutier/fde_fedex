@@ -58,5 +58,24 @@ def build_dynamic_prompt(ctx: ContentContext) -> str:
 
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    query = "Create a blog outline about microservices architecture"
+    contexts = [
+        ContentContext(audience="technical", length="short", tone="formal"),
+        ContentContext(audience="general", length="medium", tone="casual"),
+        ContentContext(audience="technical", length="long", tone="casual"),
+    ]
+
+    for i, context in enumerate(contexts, start=1):
+        agent = Agent(
+            os.getenv("AI_MODEL", "openai:gpt-5.4-mini"),
+            system_prompt=build_dynamic_prompt(context),
+        )
+        result = agent.run_sync(query)
+
+        print(f"\n{'=' * 60}")
+        print(
+            f"Context {i}: audience={context.audience}, "
+            f"length={context.length}, tone={context.tone}"
+        )
+        print(f"{'=' * 60}")
+        print(result.output)

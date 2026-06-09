@@ -54,16 +54,30 @@ agent = Agent(model, system_prompt=DETAILED_SYSTEM_PROMPT)
 
 async def stream_response(query: str):
     """Stream agent response token-by-token"""
-    # YOUR CODE HERE
-    pass
+    print(f"\nQuery: {query}")
+    print("Response:")
+    async with agent.run_stream(query) as response:
+        async for chunk in response.stream_text(delta=True):
+            print(chunk, end="", flush=True)
+
+        usage = response.usage()
+        total_tokens = usage.total_tokens if usage is not None else "N/A"
+
+    print()
+    print(f"Total tokens used: {total_tokens}")
 
 
 async def main():
     """Main async execution function"""
-    # YOUR CODE HERE
-    pass
+    queries = [
+        "Write a blog outline about AI agents for small business marketing teams",
+        "Write a blog outline about AI agents in customer support automation",
+        "Write a blog outline about AI agents for internal IT help desks",
+    ]
+
+    for query in queries:
+        await stream_response(query)
 
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    asyncio.run(main())
