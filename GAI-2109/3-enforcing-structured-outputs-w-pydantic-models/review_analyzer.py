@@ -29,5 +29,32 @@ agent = Agent(
 )
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    review = (
+        "I've been using this coffee maker for three weeks, and the coffee quality is "
+        "excellent with rich flavor every morning. Setup was simple, and I like how "
+        "compact it is on my countertop. That said, the water tank is smaller than I "
+        "expected, so I have to refill it often when guests visit. The machine is also "
+        "louder than advertised, especially during the first minute of brewing. Overall, "
+        "it's a solid product with great taste and convenience, but the noise and small "
+        "reservoir keep it from being perfect."
+    )
+
+    result = agent.run_sync(
+        "Analyze the following customer review. Identify overall sentiment, a rating, "
+        "specific pros and cons, and whether the customer recommends the product.\n\n"
+        f"Review:\n{review}"
+    )
+
+    analysis = result.output
+
+    print(f"Rating: {analysis.rating}/5")
+    print(f"Sentiment: {analysis.sentiment}")
+    print(f"Summary: {analysis.summary}")
+
+    for pro in analysis.pros.items:
+        print(f"Pro: {pro}")
+
+    for con in analysis.cons.items:
+        print(f"Con: {con}")
+
+    print(f"Recommended: {analysis.recommended}")

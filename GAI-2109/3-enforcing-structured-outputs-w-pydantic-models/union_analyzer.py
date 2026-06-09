@@ -29,5 +29,26 @@ agent = Agent(
 )
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    product_review = (
+        "This blender is powerful and easy to clean, and smoothies come out very smooth. "
+        "The lid feels a little flimsy, but overall it has been a great kitchen upgrade."
+    )
+    service_review = (
+        "The salon staff were welcoming and attentive, and my appointment started on time. "
+        "The haircut was good, though checkout took longer than expected."
+    )
+
+    product_result = agent.run_sync(f"Analyze this review:\n{product_review}")
+    service_result = agent.run_sync(f"Analyze this review:\n{service_review}")
+
+    print(f"Product Result Type: {type(product_result.output).__name__}")
+    print(f"Product Rating: {product_result.output.rating}/5")
+    print(f"Product Sentiment: {product_result.output.sentiment}")
+
+    print(f"Service Result Type: {type(service_result.output).__name__}")
+    print(f"Service Rating: {service_result.output.rating}/5")
+    print(f"Service Sentiment: {service_result.output.sentiment}")
+
+    if isinstance(service_result.output, ServiceAnalysis):
+        print(f"Service Staff Rating: {service_result.output.staff_rating}/5")
+        print(f"Service Would Return: {service_result.output.would_return}")
