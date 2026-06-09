@@ -2,11 +2,7 @@
 
 Previously implemented
 
-propose-apply-archive cycle
-
-
-This lab
-.... propose ... /opsx-propose
+Build two features ... previously built 1 feature per lab
 
 
 This lab - 2 features that depend on each other
@@ -20,3 +16,8 @@ Setup venv and run the app
 uv run uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
+* Drink customization (Section 3.4) 
+
+**propose** drink customization
+
+* 
