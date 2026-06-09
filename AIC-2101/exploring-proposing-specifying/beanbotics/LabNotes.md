@@ -1,6 +1,6 @@
-# Lab Notes BeanBotics
+# Lab 2 Notes BeanBotics
 
-propose - apply - archive 
+propose - apply - archive ... the difference in this lab is we explore a feature and then create it. In the first labe the feature scope is handed to us.
 
 * explore ... ask prompt
 * **propose** ...fresh context... /ospx-propse + prompt ...  name the feature
