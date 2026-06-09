@@ -28,8 +28,22 @@ agent = Agent(
 
 async def main():
     """Execute multiple queries in parallel using asyncio"""
-    # YOUR CODE HERE
-    pass
+    queries = [
+        "How do I reset my TechCorp account password?",
+        "Where can I download the latest desktop app?",
+        "What are your support hours for live chat?",
+    ]
+
+    # Build coroutine tasks without awaiting each call individually
+    tasks = [agent.run(query) for query in queries]
+
+    # Run all queries concurrently
+    results = await asyncio.gather(*tasks)
+
+    # Print each query with its corresponding result
+    for query, result in zip(queries, results):
+        print(f"\nQuery: {query}")
+        print(f"Response: {result.output}")
+
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    asyncio.run(main())

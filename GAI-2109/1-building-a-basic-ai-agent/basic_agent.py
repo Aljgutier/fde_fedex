@@ -33,5 +33,14 @@ agent = Agent(
 
 # Main execution
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    questions = [
+        "How do I reset my password?",
+        "What features are included in your Pro plan?",
+        "I can't log in to my account. What should I try?",
+    ]
+
+    for question in questions:
+        result = agent.run_sync(question)
+        print(f"Question: {question}")
+        print(f"Response: {result.output}")
+        print("-" * 60)

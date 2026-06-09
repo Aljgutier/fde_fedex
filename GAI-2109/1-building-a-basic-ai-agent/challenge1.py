@@ -52,5 +52,18 @@ def department_system_prompt(ctx: RunContext[Department]) -> str:
 
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    departments = [
+        Department(name="Customer Support", expertise="account access and troubleshooting"),
+        Department(name="Sales", expertise="plan recommendations and product features"),
+        Department(name="Billing", expertise="invoices, payments, and refunds"),
+    ]
+
+    query = "Can you help me?"
+
+    for dept in departments:
+        result = agent.run_sync(query, deps=dept)
+        print(f"[{dept.name}]")
+        print(f"Query: {query}")
+        print(f"Response: {result.output}")
+        print("-" * 60)
+    
