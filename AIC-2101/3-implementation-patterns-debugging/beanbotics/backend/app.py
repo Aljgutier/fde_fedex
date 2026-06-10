@@ -10,8 +10,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from pathlib import Path
+from typing import Literal, Optional
 
-from backend.models import OrderStatus
+from backend.models import OrderStatus, OrderCustomizations
 from backend.services.menu import MenuService
 from backend.services.orders import OrderService
 
@@ -29,9 +30,15 @@ app.mount("/static", StaticFiles(directory=str(frontend_dir)), name="static")
 
 # --- Request Models ---
 
+class OrderCustomizationRequest(BaseModel):
+    extra_shot: bool = False
+    milk_alternative: Literal["none", "oat", "almond", "soy"] = "none"
+    whipped_cream: bool = False
+
 class OrderRequest(BaseModel):
     item_id: str
     size: str
+    customizations: Optional[OrderCustomizationRequest] = None
 
 
 class StatusUpdateRequest(BaseModel):
@@ -53,7 +60,19 @@ async def get_menu():
 
 @app.post("/api/orders")
 async def place_order(request: OrderRequest):
-    order = order_service.place_order(request.item_id, request.size)
+    customizations = request.customizations or OrderCustomizationRequest()
+    try:
+        order = order_service.place_order(
+            request.item_id,
+            request.size,
+            OrderCustomizations(
+                extra_shot=customizations.extra_shot,
+                milk_alternative=customizations.milk_alternative,
+                whipped_cream=customizations.whipped_cream,
+            ),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if not order:
         raise HTTPException(status_code=400, detail="Invalid item or size")
     return {"order": asdict(order)}

@@ -64,6 +64,10 @@ h2 {
     border-color: #e94560;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .menu-card h3 {
     color: #fff;
     font-size: 1rem;
@@ -149,7 +153,143 @@ h2 {
     width: 100%;
 }
 
+.customization-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    padding: 0.6rem;
+    border: 1px solid #0f3460;
+    border-radius: 6px;
+    background: rgba(15, 52, 96, 0.2);
+}
+
+.customization-option {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+    color: #c9d2e3;
+}
+
+.customization-option input[type="checkbox"] {
+    accent-color: #e94560;
+}
+
+.milk-alternatives {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #b8bfd0;
+}
+
+.milk-alternatives label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.milk-alternatives input[type="radio"] {
+    accent-color: #22d3ee;
+}
+
+.customization-label {
+    color: #93a1bf;
+    font-weight: 600;
+}
+
 .order-btn:hover {
+    background: #c73651;
+}
+
+.review-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 12, 22, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1000;
+}
+
+.review-panel {
+    width: min(460px, 100%);
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
+}
+
+.review-panel h3 {
+    color: #e94560;
+    margin-bottom: 0.65rem;
+}
+
+.review-subtitle {
+    color: #93a1bf;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.review-item-name {
+    color: #fff;
+    margin: 0.35rem 0 0.65rem;
+    font-weight: 600;
+}
+
+.review-line-items {
+    list-style: none;
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 0.7rem;
+}
+
+.review-line-items li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #c9d2e3;
+}
+
+.review-total {
+    border-top: 1px solid #0f3460;
+    padding-top: 0.55rem;
+    color: #b9c6e1;
+}
+
+.review-actions {
+    margin-top: 0.8rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+}
+
+.review-back-btn,
+.review-confirm-btn {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.review-back-btn {
+    background: transparent;
+    color: #c9d2e3;
+    border-color: #93a1bf;
+}
+
+.review-confirm-btn {
+    background: #e94560;
+    color: #fff;
+}
+
+.review-confirm-btn:hover {
     background: #c73651;
 }
 
@@ -181,11 +321,72 @@ h2 {
 .order-info .order-items {
     color: #fff;
     font-size: 0.95rem;
+    display: block;
 }
 
 .order-info .order-price {
     color: #e94560;
     font-size: 0.85rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.order-customizations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+}
+
+.receipt-block {
+    margin-top: 0.5rem;
+    padding: 0.55rem;
+    border: 1px solid #2a3f66;
+    border-radius: 6px;
+    background: rgba(12, 26, 51, 0.65);
+}
+
+.receipt-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #93a1bf;
+    margin-bottom: 0.35rem;
+}
+
+.receipt-lines {
+    list-style: none;
+    display: grid;
+    gap: 0.22rem;
+}
+
+.receipt-lines li,
+.receipt-totals div {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    color: #c9d2e3;
+}
+
+.receipt-totals {
+    margin-top: 0.45rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid #2a3f66;
+}
+
+.receipt-grand-total {
+    margin-top: 0.18rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.customization-chip {
+    border: 1px solid #22d3ee;
+    color: #22d3ee;
+    background: rgba(34, 211, 238, 0.12);
+    border-radius: 999px;
+    padding: 0.1rem 0.45rem;
+    font-size: 0.7rem;
 }
 
 .order-status {
@@ -278,4 +479,20 @@ footer {
     color: #505070;
     font-size: 0.8rem;
     border-top: 1px solid #0f3460;
+}
+
+@media (max-width: 700px) {
+    .order-item {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .order-status {
+        margin-right: 0;
+    }
+
+    .advance-btn,
+    .cancel-btn {
+        margin-right: 0;
+    }
 }
