@@ -52,5 +52,42 @@ def extract_invoice(invoice_text: str) -> InvoiceDataWithConfidence:
 
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    print("Extracting data from noisy invoice...")
+
+    def with_confidence(label: str, value, confidence):
+        text = f"{label}: {value if value is not None else 'N/A'}"
+        if confidence is not None:
+            text += f" (confidence: {confidence:.2f})"
+        print(text)
+
+    try:
+        extracted_data = extract_invoice(NOISY_INVOICE)
+
+        with_confidence(
+            "Vendor",
+            extracted_data.vendor_name,
+            getattr(extracted_data, "vendor_confidence", None),
+        )
+        with_confidence(
+            "Total",
+            (
+                f"${extracted_data.total_amount:.2f}"
+                if extracted_data.total_amount is not None
+                else "N/A"
+            ),
+            getattr(extracted_data, "amount_confidence", None),
+        )
+        with_confidence(
+            "Invoice Number",
+            extracted_data.invoice_number,
+            getattr(extracted_data, "invoice_number_confidence", None),
+        )
+        with_confidence(
+            "Date",
+            extracted_data.invoice_date,
+            getattr(extracted_data, "date_confidence", None),
+        )
+        print(f"Needs Review: {extracted_data.needs_review()}")
+
+    except Exception as e:        
+        print(f"Error during extraction: {e}")

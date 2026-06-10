@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from datetime import date
-from typing import Optional
+from typing import ClassVar, Optional
 
 
 class LineItem(BaseModel):
@@ -66,7 +66,7 @@ class InvoiceDataWithConfidence(BaseModel):
         default=1.0, ge=0.0, le=1.0, description="Confidence in total amount"
     )
 
-    _PLACEHOLDER_VENDOR_NAMES = frozenset(
+    PLACEHOLDER_VENDOR_NAMES: ClassVar[frozenset[str]] = frozenset(
         {"unknown", "unspecified", "n/a", "none", "tbd", "redacted", "illegible"}
     )
 
@@ -81,7 +81,7 @@ class InvoiceDataWithConfidence(BaseModel):
         data through. This validator forces those cases into the Challenge 2
         fallback path.
         """
-        if v.strip().lower() in cls._PLACEHOLDER_VENDOR_NAMES:
+        if v.strip().lower() in cls.PLACEHOLDER_VENDOR_NAMES:
             raise ValueError(
                 f"vendor_name must be a real vendor, not the placeholder {v!r}"
             )

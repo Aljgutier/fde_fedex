@@ -37,8 +37,55 @@ main_agent = Agent(
 
 def robust_extract(invoice_text: str) -> InvoiceDataWithConfidence | PartialInvoiceData:
     """Extract with fallback to partial data."""
-    # YOUR CODE HERE
-    pass
+    try:
+        result = main_agent.run_sync(f"Extract invoice data:\n{invoice_text}")
+
+        lowered_text = invoice_text.lower()
+        if ("credit" in lowered_text or "refund" in lowered_text) and "-$" in invoice_text:
+            raise ValueError(
+                "Document appears to be a negative credit/refund memo, not a standard invoice"
+            )
+
+        return result.output
+    except Exception as e:
+        print(f"Full extraction failed ({e}), trying partial extraction...")
+
+        try:
+            partial_agent = Agent(
+                model,
+                output_type=PartialInvoiceData,
+                system_prompt=(
+                    "Extract whatever invoice information is available. "
+                    "Populate extraction_errors with issues encountered, and include "
+                    "a short raw_text_snippet from the source text."
+                ),
+            )
+
+            partial_result = partial_agent.run_sync(f"Extract invoice data:\n{invoice_text}")
+            return partial_result.output
+        except Exception as fallback_error:
+            print(f"Partial extraction failed ({fallback_error}), returning minimal partial result.")
+            return PartialInvoiceData(
+                raw_text_snippet=invoice_text[:200],
+                extraction_errors=[
+                    f"Full extraction failed: {e}",
+                    f"Partial extraction failed: {fallback_error}",
+                ],
+            )
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    result = robust_extract(INVOICE_1)
+    print("INVOICE_1 extraction:")
+    print(f"  Is InvoiceDataWithConfidence: {isinstance(result, InvoiceDataWithConfidence)}")
+    if isinstance(result, InvoiceDataWithConfidence):
+        print(f"  Vendor: {result.vendor_name}")
+        print(f"  Invoice #: {result.invoice_number}")
+
+    result = robust_extract(PROBLEMATIC_INVOICE)
+    print("\nPROBLEMATIC_INVOICE extraction:")
+    print(f"  Is PartialInvoiceData: {isinstance(result, PartialInvoiceData)}")
+    if isinstance(result, PartialInvoiceData):
+        print(f"  Vendor: {result.vendor_name or 'UNKNOWN'}")
+        print(f"  Total: {result.total_amount if result.total_amount is not None else 'UNKNOWN'}")
+        print(f"  extraction_errors: {result.extraction_errors}")
+        preview = result.raw_text_snippet[:100] if result.raw_text_snippet else ""
+        print(f"  raw_text_snippet: {preview}...")
