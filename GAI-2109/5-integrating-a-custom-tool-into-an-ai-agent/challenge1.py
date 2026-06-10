@@ -94,9 +94,36 @@ def complete_order_inquiry(order_id: str) -> str:
     Returns:
         Complete order details with inventory status for all items
     """
-    # YOUR CODE HERE
-    # Hint: Combine order data with inventory status for each item
-    pass
+    if order_id not in ORDERS:
+        return f"Order {order_id} not found."
+
+    order = ORDERS[order_id]
+    status = order["status"]
+    total = order["total"]
+    tracking = order.get("tracking") or "Not yet available"
+
+    response = [
+        f"Order {order_id}: Status: {status}, Total: ${total:.2f}",
+        "Items:"
+    ]
+
+    for item in order.get("items", []):
+        if item in INVENTORY:
+            inventory_item = INVENTORY[item]
+            available = inventory_item["available"]
+            price = inventory_item["price"]
+            availability = "In stock" if available > 0 else "Out of stock"
+            response.append(f"- {item}: {availability}, Price: ${price:.2f}")
+        else:
+            response.append(f"- {item}: not found in inventory.")
+
+    response.append(f"Tracking: {tracking}")
+
+    return "\n".join(response)
+
+
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    # Call agent.run_sync() with a query asking for complete order details
+    response = agent.run_sync("Can you provide me with all the complete details of order ORD-001?")
+    print("Agent Response:")
+    print(response.output)

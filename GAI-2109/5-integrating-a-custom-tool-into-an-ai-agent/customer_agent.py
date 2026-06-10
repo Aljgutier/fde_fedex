@@ -24,8 +24,17 @@ def get_order_status(order_id: str) -> str:
     Returns:
         String containing order status and details, or error message
     """
-    # YOUR CODE HERE
-    pass
+
+    if order_id not in ORDERS:
+        return f"Order {order_id} not found."
+
+    order = ORDERS[order_id]
+    status = order["status"]
+    total = order["total"]
+    tracking = order["tracking"]
+
+    return f"Order {order_id}: Status: {status}, Total: ${total:.2f}, Tracking: {tracking}"
+    
 @agent.tool_plain
 def check_inventory(product_name: str) -> str:
     """
@@ -97,5 +106,16 @@ def calculate_shipping(destination: str, weight_kg: float) -> str:
 
 
 if __name__ == "__main__":
-    # YOUR CODE HERE
-    pass
+    print("Order status query:")
+    result = agent.run_sync("What is the status of order ORD-001?")
+    print(result.output)
+
+    print("\nInventory query:")
+    result = agent.run_sync("Is Laptop in stock and what is its price?")
+    print(result.output)
+
+    print("\nShipping query:")
+    result = agent.run_sync("What is the shipping cost to US for a 5kg package?")
+    print(result.output)
+
+
