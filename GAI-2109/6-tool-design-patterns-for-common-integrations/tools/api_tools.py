@@ -16,7 +16,7 @@ def lookup_user(user_id: str) -> str:
     Returns:
         JSON string with user information or error details
     """
-    # YOUR CODE HERE
+    # YOUR CODE HERE   
     pass
 def search_user_orders(
     user_id: Optional[str] = None, status: Optional[str] = None, limit: int = 10
