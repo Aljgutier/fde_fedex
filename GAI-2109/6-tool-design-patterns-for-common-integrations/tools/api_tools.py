@@ -16,8 +16,29 @@ def lookup_user(user_id: str) -> str:
     Returns:
         JSON string with user information or error details
     """
-    # YOUR CODE HERE   
-    pass
+    logger.info("Looking up user: %s", user_id)
+
+    try:
+        result = get_user(user_id)
+
+        if result["success"]:
+            user = User(**result["data"])
+            response = ToolResponse(success=True, data=user.model_dump())
+            logger.info("Lookup successful for user: %s", user_id)
+        else:
+            response = ToolResponse(
+                success=False,
+                error_type="LookupError",
+                error_message=result["message"],
+            )
+
+        return response.model_dump_json()
+    except Exception as e:
+        logger.error("Lookup error: %s", e)
+        response = ToolResponse(
+            success=False, error_type=result["error"], error_message=str(e)
+        )
+        return response.model_dump_json()
 def search_user_orders(
     user_id: Optional[str] = None, status: Optional[str] = None, limit: int = 10
 ) -> str:
