@@ -91,7 +91,35 @@ class ParallelStreamCoordinator:
         Returns:
             Complete streamed text
         """
-        # YOUR CODE HERE
+        # Reset color code
+        reset = "\033[0m" if color_code else ""
+
+        # Print header
+        print(f"\n{color_code}{'─'*60}")
+        print(f"{title}")
+        print(f"{'─'*60}{reset}\n")
+        print(f"{color_code}", end="", flush=True)
+
+        # Track timing
+        self.start_times[title] = asyncio.get_event_loop().time()
+
+        chunks = []
+
+        # Stream response
+        async with agent.run_stream(prompt) as response:
+            async for chunk in response.stream_text(delta=True):
+                print(chunk, end="", flush=True)
+                chunks.append(chunk)
+
+        print(reset)  # Reset color
+
+        # Record completion
+        self.end_times[title] = asyncio.get_event_loop().time()
+
+        full_text = "".join(chunks)
+        self.results[title] = full_text
+
+        return full_text
 
     async def parallel_streaming(
         self, concept: str, show_performance: bool = True
@@ -106,7 +134,49 @@ class ParallelStreamCoordinator:
         Returns:
             Dictionary of section results
         """
-        # YOUR CODE HERE
+        print("=" * 60)
+        print(f"  Developing Story Concept: {concept}")
+        print("=" * 60)
+        print("\n\033[1;35mStreaming from multiple agents simultaneously...\033[0m")
+
+        # Launch all streams in parallel
+        results = await asyncio.gather(
+            self.stream_section(
+                plot_agent,
+                "PLOT OUTLINE",
+                f"Create a detailed plot outline for: {concept}",
+                "\033[1;34m",  # Blue
+            ),
+            self.stream_section(
+                character_agent,
+                "MAIN CHARACTERS",
+                f"Suggest and describe main characters for: {concept}",
+                "\033[1;32m",  # Green
+            ),
+            self.stream_section(
+                setting_agent,
+                "SETTING & WORLD",
+                f"Describe the setting and world for: {concept}",
+                "\033[1;33m",  # Yellow
+            ),
+            self.stream_section(
+                theme_agent,
+                "THEMES & MOTIFS",
+                f"Identify key themes and motifs for: {concept}",
+                "\033[1;36m",  # Cyan
+            ),
+        )
+
+        # Show performance stats
+        if show_performance:
+            self._show_performance_stats()
+
+        return {
+            "plot": results[0],
+            "characters": results[1],
+            "setting": results[2],
+            "themes": results[3],
+        }
 
     def _show_performance_stats(self):
         """Display performance statistics."""
@@ -227,8 +297,46 @@ async def compare_parallel_vs_sequential():
 
     Demonstrates the speed advantage of parallel execution.
     """
-    # YOUR CODE HERE
-    pass
+    concept = "A sci-fi thriller about AI awakening in a space station"
+
+    print("\n" + "=" * 60)
+    print("  Comparison: Parallel vs Sequential")
+    print("=" * 60)
+    print(f"\nConcept: {concept}\n")
+
+    # Run parallel
+    print("\n\033[1;35m>>> Running PARALLEL streaming...\033[0m\n")
+    coordinator = ParallelStreamCoordinator()
+
+    parallel_start = datetime.now()
+    parallel_results = await coordinator.parallel_streaming(concept)
+    parallel_duration = (datetime.now() - parallel_start).total_seconds()
+
+    input("\n\nPress Enter to run sequential version...")
+
+    # Run sequential
+    print("\n\033[1;35m>>> Running SEQUENTIAL streaming...\033[0m\n")
+
+    sequential_start = datetime.now()
+    sequential_results = await sequential_streaming(concept)
+    sequential_duration = (datetime.now() - sequential_start).total_seconds()
+
+    # Compare
+    print("\n" + "=" * 60)
+    print("  Final Comparison")
+    print("=" * 60)
+    print(f"\nParallel time:   {parallel_duration:.2f}s")
+    print(f"Sequential time: {sequential_duration:.2f}s")
+
+    if parallel_duration < sequential_duration:
+        speedup = sequential_duration / parallel_duration
+        print(f"\n\033[1;32m✓ Parallel was {speedup:.1f}x faster!\033[0m")
+    else:
+        print(
+            f"\n\033[1;33mNote: Sequential was faster (likely due to test model)\033[0m"
+        )
+
+    print("=" * 60 + "\n")
 
 
 class StructuredParallelStreaming:
@@ -274,7 +382,17 @@ class StructuredParallelStreaming:
         Returns:
             StoryFramework with all elements
         """
-        # YOUR CODE HERE
+        coordinator = ParallelStreamCoordinator()
+        results = await coordinator.parallel_streaming(concept, show_performance=False)
+
+        return self.StoryFramework(
+            concept=concept,
+            plot=results["plot"],
+            characters=results["characters"],
+            setting=results["setting"],
+            themes=results["themes"],
+            generated_at=datetime.now(),
+        )
 
 
 async def demo_basic_parallel():
@@ -317,8 +435,25 @@ async def demo_structured_parallel():
 
 async def main():
     """Main entry point."""
-    # YOUR CODE HERE
-    pass
+    print("\n" + "=" * 60)
+    print("  Parallel Streaming Demonstrations")
+    print("=" * 60)
+    print("\nSelect demo:")
+    print("  1 - Basic parallel streaming")
+    print("  2 - Structured parallel streaming")
+    print("  3 - Compare parallel vs sequential")
+    print()
+
+    choice = input("Choice (1-3): ").strip()
+
+    if choice == "1":
+        await demo_basic_parallel()
+    elif choice == "2":
+        await demo_structured_parallel()
+    elif choice == "3":
+        await compare_parallel_vs_sequential()
+    else:
+        print("Invalid choice")
 
 
 if __name__ == "__main__":

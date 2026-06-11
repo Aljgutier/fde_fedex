@@ -96,7 +96,35 @@ class InterruptibleStreamer:
         Returns:
             Tuple of (response_text, updated_history, was_interrupted)
         """
-        # YOUR CODE HERE
+        print(f"\n\033[1;36m[Press '{interrupt_key}' to stop]\033[0m")
+        
+        chunks = []
+        try:
+            async with self.agent.run_stream(
+                prompt, message_history=message_history or []
+            ) as response:
+                async for chunk in response.stream_text(delta=True):
+                    # Check for interrupt before printing
+                    char = self._check_interrupt()
+                    if char == interrupt_key:
+                        raise StreamInterrupt()
+                    
+                    # Print and collect the chunk
+                    print(chunk, end="", flush=True)
+                    chunks.append(chunk)
+                    
+                    # Allow event loop to process keyboard reads
+                    await asyncio.sleep(0)
+                
+                # Successful completion - get updated history
+                updated_history = response.all_messages()
+                joined_text = "".join(chunks)
+                return (joined_text, updated_history, False)
+                
+        except StreamInterrupt:
+            # Return partial response with original history
+            joined_text = "".join(chunks)
+            return (joined_text, message_history or [], True)
 
     async def interactive_with_corrections(
         self, initial_prompt: str, max_retries: int = 3
@@ -114,7 +142,37 @@ class InterruptibleStreamer:
         Returns:
             Final accepted response
         """
-        # YOUR CODE HERE
+        current_prompt = initial_prompt
+        history: List[ModelMessage] = []
+        
+        for attempt in range(max_retries + 1):
+            print(f"\n\033[1;35m[Attempt {attempt + 1}/{max_retries + 1}]\033[0m")
+            
+            response, history, was_interrupted = await self.stream_with_interrupt(
+                current_prompt, message_history=history
+            )
+            
+            if not was_interrupted:
+                # Stream completed successfully
+                return response
+            
+            # Stream was interrupted - ask for feedback
+            if attempt < max_retries:
+                feedback = input(
+                    "\n\033[1;33mWhat would you like instead? (or press Enter to keep): \033[0m"
+                ).strip()
+                
+                if not feedback:
+                    # No feedback provided - return partial response
+                    return response
+                
+                # Rebuild prompt with feedback
+                current_prompt = f"{initial_prompt}. {feedback}"
+            else:
+                # Out of retries - return whatever we have
+                return response
+        
+        return response
 
 
 async def demo_basic_interrupt():
@@ -256,13 +314,103 @@ class ThreadedInterruptibleStreamer:
         """
         import threading
 
-        # YOUR CODE HERE
+        print(f"\n\033[1;36m[Press Enter to stop]\033[0m")
+        
+        # Reset interrupt flag
+        self.interrupted = False
+        
+        # Start input thread
+        self.input_thread = threading.Thread(
+            target=self._input_thread_func, daemon=True
+        )
+        self.input_thread.start()
+        
+        chunks = []
+        try:
+            async with self.agent.run_stream(
+                prompt, message_history=message_history or []
+            ) as response:
+                async for chunk in response.stream_text(delta=True):
+                    # Check if interrupted
+                    if self.interrupted:
+                        raise StreamInterrupt()
+                    
+                    # Print and collect chunk
+                    print(chunk, end="", flush=True)
+                    chunks.append(chunk)
+                    
+                    # Allow event loop to check interrupt flag
+                    await asyncio.sleep(0.01)
+                
+                # Successful completion
+                updated_history = response.all_messages()
+                joined_text = "".join(chunks)
+                return (joined_text, updated_history, False)
+                
+        except StreamInterrupt:
+            # Return partial response
+            joined_text = "".join(chunks)
+            return (joined_text, message_history or [], True)
 
 
 async def main():
     """Main entry point."""
-    # YOUR CODE HERE
-    pass
+    is_unix = sys.platform != "win32"
+    
+    if is_unix:
+        # Unix/Mac: Show menu
+        print("\n" + "=" * 60)
+        print("  Interruptible Streaming Demos")
+        print("=" * 60)
+        print("\nSelect a demo:")
+        print("  1. Basic Interrupt (non-blocking input)")
+        print("  2. Interactive Corrections")
+        print("  3. Multi-turn Conversation")
+        print("  q. Quit\n")
+        
+        while True:
+            choice = input("Enter your choice: ").strip().lower()
+            
+            if choice == "1":
+                await demo_basic_interrupt()
+                break
+            elif choice == "2":
+                await demo_interactive_corrections()
+                break
+            elif choice == "3":
+                await demo_conversation_with_interrupts()
+                break
+            elif choice == "q":
+                print("\nGoodbye!")
+                return
+            else:
+                print("Invalid choice. Please try again.")
+    else:
+        # Windows: Run threaded version
+        print("\n" + "=" * 60)
+        print("  Interruptible Streaming (Threaded for Windows)")
+        print("=" * 60)
+        print("\nUsing threaded interrupt method for cross-platform compatibility.\n")
+        
+        agent = Agent(
+            os.getenv("AI_MODEL", "openai:gpt-4-mini"),
+            system_prompt="You are a creative writer. Write detailed content.",
+        )
+        
+        streamer = ThreadedInterruptibleStreamer(agent)
+        
+        response, _, interrupted = await streamer.stream_with_interrupt_threaded(
+            "Write a detailed description of a fantasy castle, "
+            "including its towers, walls, gates, and surrounding landscape. "
+            "Make it at least 200 words."
+        )
+        
+        if interrupted:
+            print(
+                f"\n\n\033[1;33mYou stopped the generation after {len(response)} characters.\033[0m"
+            )
+        else:
+            print(f"\n\n\033[1;32mGeneration completed: {len(response)} characters.\033[0m")
 
 
 if __name__ == "__main__":

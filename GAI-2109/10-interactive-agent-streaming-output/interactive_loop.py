@@ -21,6 +21,7 @@ from datetime import datetime
 # Load environment variables
 load_dotenv()
 
+
 # Create creative writing assistant
 agent = Agent(
     os.getenv("AI_MODEL", "openai:gpt-5.4-mini"),
@@ -65,11 +66,51 @@ async def interactive_session():
             break
 
         # YOUR CODE HERE
+        # Handle special commands
+        if user_input.lower() == "quit":
+            print("\n\033[1;32mGoodbye! Happy writing!\033[0m")
+            break
+
+        if user_input.lower() == "history":
+            show_history(history)
+            continue
+
+        if user_input.lower() == "clear":
+            history = []
+            turn_count = 0
+            print("\n\033[1;33m[History cleared]\033[0m")
+            continue
+
+        if user_input.lower() == "save":
+            save_conversation(history, session_start)
+            continue
 
         if not user_input:
             continue
 
         # YOUR CODE HERE
+        # Increment turn counter
+        turn_count += 1
+
+        # Stream response with history
+        print("\n\033[1;32mAssistant: \033[0m", end="", flush=True)
+
+        try:
+            async with agent.run_stream(
+                user_input, message_history=history
+            ) as response:
+                # Stream chunks as they arrive
+                async for chunk in response.stream_text(delta=True):
+                    print(chunk, end="", flush=True)
+
+            print()  # Newline after response
+
+            # Update history with all messages from this turn
+            history = response.all_messages()
+
+        except Exception as e:
+            print(f"\n\n\033[1;31m[Error: {e}]\033[0m")
+            print("Please try again or type 'quit' to exit.")
 
 
 def show_history(history: list[ModelMessage]):
@@ -131,8 +172,54 @@ def show_history(history: list[ModelMessage]):
 
 def save_conversation(history: list[ModelMessage], session_start: datetime):
     """Save conversation to a file."""
-    # YOUR CODE HERE
-    pass
+    if not history:
+        print("\n\033[1;33m[No conversation to save]\033[0m")
+        return
+
+    # Generate filename
+    timestamp = session_start.strftime("%Y%m%d_%H%M%S")
+    filename = f"conversation_{timestamp}.txt"
+
+    try:
+        with open(filename, "w") as f:
+            f.write("=" * 60 + "\n")
+            f.write(
+                f"Creative Writing Session - {session_start.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            )
+            f.write("=" * 60 + "\n\n")
+
+            for msg in history:
+                if isinstance(msg, ModelRequest):
+                    role = "USER"
+                    # Extract content
+                    if hasattr(msg, "parts") and msg.parts:
+                        content = ""
+                        for part in msg.parts:
+                            if hasattr(part, "content"):
+                                content += str(part.content)
+                    else:
+                        content = str(msg)
+
+                elif isinstance(msg, ModelResponse):
+                    role = "ASSISTANT"
+                    if hasattr(msg, "parts") and msg.parts:
+                        content = ""
+                        for part in msg.parts:
+                            if hasattr(part, "content"):
+                                content += str(part.content)
+                    else:
+                        content = str(msg)
+                else:
+                    role = "SYSTEM"
+                    content = str(msg)
+
+                f.write(f"{role}:\n{content}\n\n")
+                f.write("-" * 60 + "\n\n")
+
+        print(f"\n\033[1;32m[Conversation saved to {filename}]\033[0m")
+
+    except Exception as e:
+        print(f"\n\033[1;31m[Error saving: {e}]\033[0m")
 
 
 async def guided_story_development():
@@ -146,8 +233,65 @@ async def guided_story_development():
     print("=" * 60)
     print("\nLet's develop a story together!\n")
 
-    # YOUR CODE HERE
-    pass
+    history: list[ModelMessage] = []
+
+    # Step 1: Genre
+    print("\033[1;34mWhat genre would you like to write?\033[0m")
+    genre = input("> ").strip()
+
+    print("\n\033[1;32mAssistant: \033[0m", end="", flush=True)
+    async with agent.run_stream(
+        f"Suggest 3 compelling story concepts for a {genre} story",
+        message_history=history,
+    ) as response:
+        async for chunk in response.stream_text(delta=True):
+            print(chunk, end="", flush=True)
+    print()
+    history = response.all_messages()
+
+    # Step 2: Concept selection
+    print("\n\033[1;34mWhich concept interests you, or describe your own:\033[0m")
+    concept = input("> ").strip()
+
+    print("\n\033[1;32mAssistant: \033[0m", end="", flush=True)
+    async with agent.run_stream(
+        f"Great choice! Let's develop '{concept}'. Suggest main characters.",
+        message_history=history,
+    ) as response:
+        async for chunk in response.stream_text(delta=True):
+            print(chunk, end="", flush=True)
+    print()
+    history = response.all_messages()
+
+    # Step 3: Characters
+    print("\n\033[1;34mWho would you like as the protagonist?\033[0m")
+    protagonist = input("> ").strip()
+
+    print("\n\033[1;32mAssistant: \033[0m", end="", flush=True)
+    async with agent.run_stream(
+        f"Perfect! Now let's create a detailed profile for {protagonist}",
+        message_history=history,
+    ) as response:
+        async for chunk in response.stream_text(delta=True):
+            print(chunk, end="", flush=True)
+    print()
+    history = response.all_messages()
+
+    # Step 4: Plot
+    print("\n\033[1;34mWhat's the main conflict or challenge?\033[0m")
+    conflict = input("> ").strip()
+
+    print("\n\033[1;32mAssistant: \033[0m", end="", flush=True)
+    async with agent.run_stream(
+        f"Excellent! Create a story outline with {protagonist} facing {conflict}",
+        message_history=history,
+    ) as response:
+        async for chunk in response.stream_text(delta=True):
+            print(chunk, end="", flush=True)
+    print()
+
+    print("\n\033[1;32m✓ Story framework complete!\033[0m")
+    print(f"Total conversation turns: {len(response.all_messages())}")
 
 
 async def main():

@@ -60,8 +60,15 @@ async def stream_character(description: str) -> CharacterProfile:
     print(f"Creating character: {description}\n")
     print("Generating: ", end="", flush=True)
 
-    # YOUR CODE HERE
-    pass
+    async with character_agent.run_stream(description) as response:
+        async for partial in response.stream_output(debounce_by=0.1):
+            if partial.name:
+                print(partial.name, end=" ", flush=True)
+            else:
+                print(".", end="", flush=True)
+        print()
+        return await response.get_output()
+
 async def main():
     character = await stream_character(
         "An elderly clockmaker who guards an ancient secret"
