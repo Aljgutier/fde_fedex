@@ -9,7 +9,8 @@ propose - apply - archive ... the difference in this lab is we explore a feature
 * verify ... verify the implementation
 * **archive** ... /ospx-archive
 
-**Explore (Section2.4)** ... ask free form explore ... not /opsx command
+
+**Full Order Lifecycle** **Explore (Section2.4)** ... ask free form explore ... not /opsx command
   * ask agent ... expore Ask prompt  ... if we wanted to active full order cycle
 
   ```
@@ -36,15 +37,19 @@ Here are my decisions on the open questions:
 
 Write a draft proposal summary with these decisions baked in.
 Include: the problem, proposed solution, scope, out of scope, and risks.
-Save it to docs/explore-status-lifecycle.md.
+Save it to docs/explore-status-lifecycle.md
 ```
 * Documents created
   * proposal.md
-  * specs/
+  * **specs/changes/feature-name/specs/spec.md** <<-- most important to review
   * design.md
   * tasks.md
 
-**Manually review and Refine (use AI)**
+**Rview and Refine (use AI)**
+
+Are requirements ./openspec/f using RFC 2119 keywords?
+
+If you see a requirement like "the system updates the order status," change it to use precise language: "the system MUST update the order status" or "the system SHOULD display a confirmation."
 
 ** clear context 
 * ./openspeck/changes/add-order-status-lifecycle/propoasl.md
