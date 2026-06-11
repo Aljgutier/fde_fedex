@@ -14,6 +14,7 @@ Run: python agent.py
 """
 
 import os
+import time
 import asyncio
 from typing import Dict, Optional, List
 from pydantic_ai import Agent
@@ -42,6 +43,33 @@ Guidelines:
 """,
 )
 
+HEDGING_PHRASES = [
+    "i'm not sure",
+    "im not sure",
+    "i don't know",
+    "i can't predict",
+    "cannot predict",
+    "not certain",
+    "uncertain",
+    "possibly",
+    "might be",
+    "could be",
+    "perhaps",
+    "it's possible",
+    "there is a chance",
+    "with certainty",
+    "i can't say",
+]
+
+
+def compute_confidence(response: str) -> float:
+    """Estimate a simple confidence score from hedging phrases."""
+    response_lower = response.lower().replace("’", "'").replace("‘", "'")
+    hedging_count = sum(1 for phrase in HEDGING_PHRASES if phrase in response_lower)
+    if hedging_count == 0:
+        return 1.0
+    return max(0.0, 1.0 - 0.5 * hedging_count)
+
 
 async def handle_query_with_guardrails(query: str) -> Dict:
     """
@@ -63,8 +91,92 @@ async def handle_query_with_guardrails(query: str) -> Dict:
             'pii_redacted': Dict[str, int]
         }
     """
-    # YOUR CODE HERE
-    pass
+    triggered: List[str] = []
+
+    input_result = InputGuardrails.validate_input(query)
+    if not input_result.is_valid:
+        triggered.append("input_validation")
+        return {
+            "success": False,
+            "response": None,
+            "error": input_result.error_message,
+            "guardrails_triggered": triggered,
+            "pii_redacted": {},
+        }
+
+    try:
+        result = await support_agent.run(query)
+        response = result.output
+    except Exception as e:
+        return {
+            "success": False,
+            "response": None,
+            "error": f"Agent error: {str(e)}",
+            "guardrails_triggered": triggered,
+            "pii_redacted": {},
+        }
+
+    output_result = OutputGuardrails.validate_output(response)
+    if output_result.policy_violations:
+        triggered.append("policy_compliance")
+        return {
+            "success": False,
+            "response": response,
+            "error": f"Policy violations: {'; '.join(output_result.policy_violations)}",
+            "guardrails_triggered": triggered,
+            "pii_redacted": {},
+            "validation_details": {
+                "errors": output_result.errors,
+                "warnings": output_result.warnings,
+                "policy_violations": output_result.policy_violations,
+            },
+        }
+
+    if not output_result.is_valid:
+        triggered.append("output_validation")
+        return {
+            "success": False,
+            "response": response,
+            "error": f"Output validation failed: {'; '.join(output_result.errors)}",
+            "guardrails_triggered": triggered,
+            "pii_redacted": {},
+            "validation_details": {
+                "errors": output_result.errors,
+                "warnings": output_result.warnings,
+                "policy_violations": output_result.policy_violations,
+            },
+        }
+
+    confidence_score = compute_confidence(response)
+    if confidence_score < 0.6:
+        triggered.append("low_confidence")
+        return {
+            "success": False,
+            "response": response,
+            "error": "Low confidence response; route for human review.",
+            "guardrails_triggered": triggered,
+            "pii_redacted": {},
+            "validation_details": {
+                "errors": output_result.errors,
+                "warnings": output_result.warnings,
+                "policy_violations": output_result.policy_violations,
+                "confidence_score": confidence_score,
+            },
+        }
+
+    redacted_response, pii_found = PIIDetector.redact_pii(response)
+    if pii_found:
+        triggered.append("pii_redaction")
+        response = redacted_response
+
+    return {
+        "success": True,
+        "response": response,
+        "error": None,
+        "guardrails_triggered": triggered,
+        "pii_redacted": pii_found,
+        "quality_score": output_result.quality_score,
+    }
 
 
 async def handle_query_skipping_input_validation(query: str) -> Dict:
@@ -91,6 +203,21 @@ async def handle_query_skipping_input_validation(query: str) -> Dict:
 
     output_result = OutputGuardrails.validate_output(response)
 
+    if output_result.policy_violations:
+        triggered.append("policy_compliance")
+        return {
+            "success": False,
+            "response": response,
+            "error": f"Policy violations: {'; '.join(output_result.policy_violations)}",
+            "guardrails_triggered": triggered,
+            "pii_redacted": {},
+            "validation_details": {
+                "errors": output_result.errors,
+                "warnings": output_result.warnings,
+                "policy_violations": output_result.policy_violations,
+            },
+        }
+
     if not output_result.is_valid:
         triggered.append("output_validation")
         return {
@@ -104,16 +231,6 @@ async def handle_query_skipping_input_validation(query: str) -> Dict:
                 "warnings": output_result.warnings,
                 "policy_violations": output_result.policy_violations,
             },
-        }
-
-    if output_result.policy_violations:
-        triggered.append("policy_compliance")
-        return {
-            "success": False,
-            "response": response,
-            "error": f"Policy violations: {'; '.join(output_result.policy_violations)}",
-            "guardrails_triggered": triggered,
-            "pii_redacted": {},
         }
 
     redacted_response, pii_found = PIIDetector.redact_pii(response)
@@ -159,18 +276,21 @@ async def handle_query_with_retry(
     """
     # Anchored — never reassign across retries.
     original_query = query
+    latency_budget_seconds = 10.0
+    start_time = time.monotonic()
+    total_attempts = 1
 
     result = await handle_query_with_guardrails(query)
 
     for attempt in range(max_retries):
         if result["success"]:
-            result["attempts"] = attempt + 1
+            result["attempts"] = total_attempts
             return result
 
         # Don't retry input validation failures — the user's actual
         # query was rejected, not a framework-generated correction.
         if "input_validation" in result["guardrails_triggered"]:
-            result["attempts"] = attempt + 1
+            result["attempts"] = total_attempts
             return result
 
         # Only retry output validation or policy failures.
@@ -178,11 +298,31 @@ async def handle_query_with_retry(
             g in result["guardrails_triggered"]
             for g in ("output_validation", "policy_compliance")
         ):
-            result["attempts"] = attempt + 1
+            result["attempts"] = total_attempts
             return result
 
-        correction_prompt = f"""
-The previous response violated guidelines: {result['error']}
+        elapsed = time.monotonic() - start_time
+        if elapsed >= latency_budget_seconds:
+            result["attempts"] = total_attempts
+            result["error"] = (
+                f"Retry aborted: exceeded latency budget of {latency_budget_seconds:.1f}s"
+            )
+            return result
+
+        failure_category = (
+            "policy_compliance"
+            if "policy_compliance" in result["guardrails_triggered"]
+            else "output_validation"
+        )
+
+        validation_details = result.get("validation_details", {})
+        policy_violations = validation_details.get("policy_violations", [])
+        errors = validation_details.get("errors", [])
+        warnings = validation_details.get("warnings", [])
+
+        if failure_category == "policy_compliance":
+            correction_prompt = f"""
+The previous response violated policy compliance: {result['error']}
 
 Please provide a response that:
 - Is professional and helpful
@@ -190,14 +330,39 @@ Please provide a response that:
 - Avoids inappropriate language
 - Does not express personal opinions
 - Is factual and accurate
+- Does not provide financial, legal, or tax advice
 
 Original user question: {original_query}
 """
-        # Skip input validation — correction_prompt is framework-generated,
-        # so applying InputGuardrails to it is a category error.
+        else:
+            correction_prompt = f"""
+The previous response failed output validation: {result['error']}
+
+Please provide a response that:
+- Is complete, professional, and helpful
+- Avoids generic or inappropriate phrasing
+- Meets quality expectations and internal content policy
+- Does not express personal opinions
+- Is factual and accurate
+
+Original user question: {original_query}
+"""
+
+        prompt_preview = " ".join(correction_prompt.strip().split())
+        prompt_preview = prompt_preview[:200] + (
+            "..." if len(prompt_preview) > 200 else ""
+        )
+
+        print(
+            f"[Attempt {total_attempts + 1}/{max_retries + 1}] "
+            f"Failure category: {failure_category}. "
+            f"Sending correction prompt preview: {prompt_preview}"
+        )
+
+        total_attempts += 1
         result = await handle_query_skipping_input_validation(correction_prompt)
 
-    result["attempts"] = max_retries + 1
+    result["attempts"] = total_attempts
     return result
 
 
@@ -299,6 +464,7 @@ async def demo():
         # the headline validation passed silently with the wrong outcome.
         "I need investment advice on which stocks to pick this quarter.",
         "How do I reset my password?",
+        "Do you think mortgage rates will fall next year?",
         "My SSN is 123-45-6789, can you help?",
     ]
 
