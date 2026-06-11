@@ -125,7 +125,33 @@ class IoCContainer:
             ValueError: If service not registered
             CircularDependencyError: If circular dependency detected
         """
-        # YOUR CODE HERE
+        descriptor = self._services.get(service_type)
+        if descriptor is None:
+            raise ValueError(f"Service not registered: {service_type}")
+
+        # Return cached singleton instance
+        if descriptor.lifetime == Lifetime.SINGLETON and descriptor.instance is not None:
+            return descriptor.instance
+
+        # Detect circular dependency
+        if service_type in self._resolving:
+            chain = list(self._resolving) + [service_type]
+            names = " -> ".join([getattr(t, "__name__", str(t)) for t in chain])
+            raise CircularDependencyError(f"Circular dependency detected: {names}")
+
+        # Build instance with dependency injection
+        try:
+            self._resolving.add(service_type)
+            instance = await self._create_instance(descriptor)
+
+            if descriptor.lifetime == Lifetime.SINGLETON:
+                descriptor.instance = instance
+
+            return instance
+        finally:
+            # Ensure we always remove the resolving marker
+            if service_type in self._resolving:
+                self._resolving.remove(service_type)
 
     async def _create_instance(self, descriptor: ServiceDescriptor) -> Any:
         """
@@ -137,7 +163,47 @@ class IoCContainer:
         Returns:
             Instance with injected dependencies
         """
-        # YOUR CODE HERE
+        impl = descriptor.implementation
+
+        # Factory function (callable but not a class)
+        if callable(impl) and not inspect.isclass(impl):
+            result = impl()
+            if asyncio.iscoroutine(result):
+                result = await result
+            return result
+
+        # Class - inspect constructor signature and resolve annotated parameters
+        ctor = impl
+
+        try:
+            sig = inspect.signature(ctor)
+            # Use get_type_hints to resolve forward references
+            type_hints = get_type_hints(ctor.__init__)
+        except (ValueError, TypeError):
+            sig = inspect.signature(ctor)
+            type_hints = {}
+
+        kwargs = {}
+        for name, param in sig.parameters.items():
+            # Skip 'self' for class constructors
+            if name == "self":
+                continue
+
+            annotation = type_hints.get(name, param.annotation)
+            if annotation is inspect._empty:
+                continue
+
+            # Recursively resolve the dependency
+            dep = await self.resolve(annotation)
+            kwargs[name] = dep
+
+        # Instantiate the class with resolved dependencies
+        instance = ctor(**kwargs)
+        # If constructor returns coroutine via __init__ (rare), await it
+        if asyncio.iscoroutine(instance):
+            instance = await instance
+
+        return instance
 
     async def dispose(self):
         """
@@ -250,13 +316,38 @@ class OrderService:
 
     async def get_order(self, order_id: str):
         """Get order with caching."""
-        # YOUR CODE HERE
+        # Try cache first
+        cached = await self.cache.get(order_id)
+        if cached is not None:
+            return cached
+
+        # Cache miss - query database
+        result = await self.database.query(f"SELECT * FROM orders WHERE id = '{order_id}'")
+        await self.cache.set(order_id, result)
+        return result
 
 
 async def example_usage():
     """Demonstrate automatic dependency resolution."""
-    # YOUR CODE HERE
-    pass
+    container = IoCContainer()
+
+    # Register singletons
+    container.register_singleton(ILogger, ConsoleLogger)
+    container.register_singleton(IDatabase, SqlDatabase)
+    container.register_singleton(ICache, MemoryCache)
+
+    # OrderService should be transient
+    container.register_transient(OrderService, OrderService)
+
+    # Resolve twice
+    s1 = await container.resolve(OrderService)
+    s2 = await container.resolve(OrderService)
+
+    print(f"service same: {s1 is s2}")
+    print(f"logger same: {s1.logger is s2.logger}")
+    print(f"database same: {s1.database is s2.database}")
+
+    await container.dispose()
 
 
 # Test fixtures for circular-dependency detection. Defined at module scope
@@ -278,8 +369,15 @@ class ServiceB:
 
 async def test_circular_dependency():
     """Demonstrate circular dependency detection."""
-    # YOUR CODE HERE
-    pass
+    container = IoCContainer()
+    container.register_transient(ServiceA, ServiceA)
+    container.register_transient(ServiceB, ServiceB)
+
+    try:
+        await container.resolve(ServiceA)
+        print("ERROR: expected CircularDependencyError")
+    except CircularDependencyError:
+        print("Circular dependency detected as expected")
 
 
 if __name__ == "__main__":

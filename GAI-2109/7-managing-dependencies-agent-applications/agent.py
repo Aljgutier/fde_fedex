@@ -61,8 +61,33 @@ async def get_order(ctx: RunContext[AgentDependencies], order_id: str) -> OrderI
     Returns:
         Order information
     """
-    # YOUR CODE HERE
-    pass
+    cache_key = f"order:{order_id}"
+
+    # Attempt to read from cache first
+    cached = await ctx.deps.cache.get(cache_key)
+    if cached is not None:
+        return OrderInfo(**cached)
+
+    # Cache miss: query the database
+    results = await ctx.deps.database.query(
+        "SELECT * FROM orders WHERE id = :id",
+        {"id": order_id},
+    )
+
+    if not results:
+        raise ValueError(f"Order {order_id} not found")
+
+    row = results[0]
+    order = OrderInfo(
+        order_id=row["id"],
+        status=row["status"],
+        customer_email=row["customer_email"],
+        total=row["total"],
+        created_at=row.get("created_at", ""),
+    )
+
+    await ctx.deps.cache.set(cache_key, order.model_dump())
+    return order
 @order_agent.tool
 async def send_order_update(
     ctx: RunContext[AgentDependencies], order_id: str, message: str
@@ -168,15 +193,39 @@ async def process_order_query(query: str, deps: AgentDependencies) -> str:
     Returns:
         Agent response
     """
-    # YOUR CODE HERE
-    pass
+    logger.info(f"Processing query: {query}")
+
+    result = await order_agent.run(query, deps=deps)
+
+    logger.info("Query processed successfully")
+    return result.output
+
 # Example usage
 async def main():
     """Example of using agent with dependencies."""
     from factory import DependencyFactory
 
-    # YOUR CODE HERE
-    pass
+    factory = DependencyFactory()
+
+    try:
+        deps = await factory.create_dependencies()
+
+        queries = [
+            "What's the status of order ORD-12345?",
+            "Send an update about order ORD-12345 saying it will arrive tomorrow",
+            "Is the advanced_search feature enabled?",
+        ]
+
+        for query in queries:
+            print(f"\nQuery: {query}")
+            response = await process_order_query(query, deps)
+            print(f"Response: {response}")
+            print("-" * 80)
+
+    finally:
+        await factory.shutdown()
+
+
 if __name__ == "__main__":
     import asyncio
 
