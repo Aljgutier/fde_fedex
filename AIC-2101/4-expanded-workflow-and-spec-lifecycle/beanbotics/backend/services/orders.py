@@ -6,7 +6,16 @@ Manages the BeanBotics order queue — placing, listing, and cancelling orders.
 
 from typing import List, Optional
 
-from backend.models import Order, OrderStatus, VALID_TRANSITIONS, CUSTOMIZATIONS, TAX_RATE
+from backend.models import (
+    Order,
+    OrderStatus,
+    VALID_TRANSITIONS,
+    CUSTOMIZATIONS,
+    TAX_RATE,
+    RECIPES,
+    INGREDIENT_UNIT_COSTS,
+    CUSTOMIZATION_INGREDIENTS,
+)
 from backend.services.menu import MenuService
 
 
@@ -34,6 +43,26 @@ class OrderService:
         surcharge = sum(CUSTOMIZATIONS[cid]["price"] for cid in customizations)
         subtotal = base_price + surcharge
 
+        # Revenue is base price plus customization surcharges (pre-tax)
+        revenue = round(subtotal, 2)
+
+        # Calculate COGS from recipe and customization ingredient contributions
+        cogs = 0.0
+        recipe = RECIPES.get(item.id, {}).get(size, {})
+        for ingr, qty in recipe.items():
+            unit_cost = INGREDIENT_UNIT_COSTS.get(ingr, 0.0)
+            cogs += unit_cost * qty
+
+        # Add customization ingredient costs
+        for cid in customizations:
+            contrib = CUSTOMIZATION_INGREDIENTS.get(cid, {})
+            for ingr, qty in contrib.items():
+                unit_cost = INGREDIENT_UNIT_COSTS.get(ingr, 0.0)
+                cogs += unit_cost * qty
+
+        cogs = round(cogs, 2)
+        margin = round(revenue - cogs, 2)
+
         display_name = f"{size.capitalize()} {item.name}"
         if customizations:
             extras = ", ".join(CUSTOMIZATIONS[cid]["name"] for cid in customizations)
@@ -52,6 +81,9 @@ class OrderService:
             "tax_rate": TAX_RATE,
             "tax": tax,
             "total": round(subtotal + tax, 2),
+            "revenue": revenue,
+            "cogs": cogs,
+            "margin": margin,
         }
 
         order = Order(
@@ -60,13 +92,16 @@ class OrderService:
             total_price=subtotal,
             customizations=customizations,
             items_detail=items_detail,
+            revenue=revenue,
+            cogs=cogs,
+            margin=margin,
         )
         self.orders.append(order)
         self._next_id += 1
         return order
 
     def get_all_orders(self) -> List[Order]:
-        return [o for o in self.orders if o.status != "cancelled"]
+        return [o for o in self.orders if o.status != OrderStatus.CANCELLED]
 
     def get_order_by_id(self, order_id: int) -> Optional[Order]:
         for order in self.orders:

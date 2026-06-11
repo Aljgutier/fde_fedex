@@ -215,6 +215,17 @@ function renderReceipt(detail) {
     html += `<div class="receipt-line tax"><span>Tax (8.5%)</span><span>$${detail.tax.toFixed(2)}</span></div>`;
     html += `<div class="receipt-line total"><span>Total</span><span>$${detail.total.toFixed(2)}</span></div>`;
 
+    // Financial breakdown
+    if (detail.revenue !== undefined) {
+        html += `<div class="receipt-line finance"><span>Revenue</span><span>$${detail.revenue.toFixed(2)}</span></div>`;
+    }
+    if (detail.cogs !== undefined) {
+        html += `<div class="receipt-line finance"><span>COGS</span><span>$${detail.cogs.toFixed(2)}</span></div>`;
+    }
+    if (detail.margin !== undefined) {
+        html += `<div class="receipt-line finance"><span>Margin</span><span>$${detail.margin.toFixed(2)}</span></div>`;
+    }
+
     return `<div class="receipt-panel">${html}</div>`;
 }
 
@@ -254,6 +265,7 @@ function renderOrder(order) {
                 <span class="order-id">#${order.order_id}</span>
                 <span class="order-items">${order.items.join(", ")}</span>
                 <span class="order-price">$${order.total_price.toFixed(2)}</span>
+                ${order.revenue !== undefined ? `<div class="order-finance">Rev $${order.revenue.toFixed(2)} · COGS $${(order.cogs||0).toFixed(2)} · Margin $${(order.margin||0).toFixed(2)}</div>` : ""}
             </div>
             <span class="order-status status-${order.status}">${order.status}</span>
             ${getAdvanceButton(order)}
@@ -263,6 +275,16 @@ function renderOrder(order) {
         ${receiptPanel}
     `;
     return div;
+}
+
+function renderDashboard(allOrders) {
+    const totalRevenue = allOrders.reduce((s, o) => s + (o.revenue || 0), 0);
+    const totalCogs = allOrders.reduce((s, o) => s + (o.cogs || 0), 0);
+    const totalMargin = allOrders.reduce((s, o) => s + (o.margin || 0), 0);
+
+    document.getElementById("total-revenue").textContent = totalRevenue.toFixed(2);
+    document.getElementById("total-cogs").textContent = totalCogs.toFixed(2);
+    document.getElementById("total-margin").textContent = totalMargin.toFixed(2);
 }
 
 async function loadOrders() {
@@ -298,6 +320,8 @@ async function loadOrders() {
             container.appendChild(heading);
             completed.forEach((order) => container.appendChild(renderOrder(order)));
         }
+        // Update financial dashboard using all orders
+        renderDashboard(data.orders);
     } catch (err) {
         container.innerHTML = `<p class="empty-state">Failed to load orders.</p>`;
     }
