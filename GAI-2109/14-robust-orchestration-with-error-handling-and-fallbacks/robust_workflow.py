@@ -15,6 +15,10 @@ import asyncio
 from typing import Dict, Any, Optional, Callable
 from dataclasses import dataclass
 from datetime import datetime
+import json
+from pathlib import Path
+from types import SimpleNamespace
+from abc import ABC, abstractmethod
 from pydantic_ai import Agent
 import os
 from dotenv import load_dotenv
@@ -63,7 +67,29 @@ class CircuitBreaker:
         return False
 
 
-class RobustWorkflowStep:
+class SagaStep(ABC):
+    """Abstract base class for saga steps with mandatory compensation.
+    
+    Every saga step must implement both execute() and compensate().
+    This ensures every transactional stage declares its rollback behavior up front.
+    """
+
+    def __init__(self, name: str):
+        self.name = name
+        self.circuit_breaker = CircuitBreaker()
+
+    @abstractmethod
+    async def execute(self, context: Dict[str, Any]) -> str:
+        """Execute the forward action of this saga step."""
+        pass
+
+    @abstractmethod
+    async def compensate(self, context: Dict[str, Any]):
+        """Execute the compensating action (rollback) for this saga step."""
+        pass
+
+
+class RobustWorkflowStep(SagaStep):
     """Workflow step with error handling."""
 
     def __init__(
@@ -76,14 +102,13 @@ class RobustWorkflowStep:
         timeout_seconds: float = 30.0,
         max_retries: int = 2,
     ):
-        self.name = name
+        super().__init__(name)
         self.agent = agent
         self.prompt_template = prompt_template
         self.fallback_agent = fallback_agent
         self.compensation_action = compensation_action
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
-        self.circuit_breaker = CircuitBreaker()
 
     async def execute(self, context: Dict[str, Any]) -> str:
         """Execute step with error handling."""
@@ -144,6 +169,8 @@ class RobustWorkflowStep:
         if self.compensation_action:
             print(f"  ↶ Running compensation for {self.name}")
             await self.compensation_action(context)
+        else:
+            print(f"  ⚠ No compensation action defined for {self.name}")
 
 
 class RobustWorkflowOrchestrator:
@@ -162,10 +189,68 @@ class RobustWorkflowOrchestrator:
     async def execute(self, initial_context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute workflow with error handling."""
         # YOUR CODE HERE
+        # Make a local copy of the incoming context so callers are not mutated
+        context: Dict[str, Any] = dict(initial_context or {})
+
+        # Seed metadata
+        context.setdefault("_metadata", {})
+        context["_metadata"]["start_time"] = datetime.now()
+        context["_metadata"]["steps_completed"] = []
+        context["_metadata"]["steps_failed"] = []
+
+        # Banner for operator visibility
+        print(f"\n=== Running workflow: {self.name} ===\n")
+
+        total = len(self.steps)
+
+        try:
+            for idx, step in enumerate(self.steps, 1):
+                print(f"Step {idx}/{total}: {step.name}")
+
+                try:
+                    result_value = await step.execute(context)
+                    # store under <step.name>_result for downstream templates
+                    context[f"{step.name}_result"] = result_value
+
+                    # book-keeping for rollback and metadata
+                    context["_metadata"]["steps_completed"].append(step.name)
+                    self.executed_steps.append(step)
+
+                except Exception as err:  # narrow to the single step
+                    print(f"  ✗ Step failed: {step.name} -> {err}")
+                    context["_metadata"]["steps_failed"].append(step.name)
+                    # Run rollback and finalize metadata
+                    await self._rollback(context)
+                    context["_metadata"]["end_time"] = datetime.now()
+                    context["_metadata"]["status"] = "failed"
+                    return context
+
+        except Exception:
+            # Unexpected error around the loop - ensure rollback then re-raise
+            await self._rollback(context)
+            raise
+
+        # Completed all steps successfully
+        context["_metadata"]["end_time"] = datetime.now()
+        context["_metadata"]["status"] = "completed"
+
+        # Print duration summary
+        start = context["_metadata"]["start_time"]
+        end = context["_metadata"]["end_time"]
+        duration = end - start
+        print(f"\nWorkflow completed in {duration.total_seconds():.2f} seconds\n")
+
+        return context
 
     async def _rollback(self, context: Dict[str, Any]):
-        """Rollback executed steps."""
+        """Rollback executed steps.
+
+        Return early if there are no executed steps. Otherwise print a banner
+        and run each step's compensation in reverse order, then clear the
+        executed_steps list.
+        """
         if not self.executed_steps:
+            print("  (rollback) no executed steps to compensate")
             return
 
         print(f"\n{'='*60}")
@@ -174,34 +259,65 @@ class RobustWorkflowOrchestrator:
 
         # Compensate in reverse order
         for step in reversed(self.executed_steps):
-            await step.compensate(context)
+            try:
+                await step.compensate(context)
+            except Exception as e:
+                print(f"  ⚠ Compensation for {step.name} raised: {e}")
 
+        # Clear executed steps after attempting compensation
         self.executed_steps.clear()
 
 
 # Example workflow
 async def example():
     """Demonstrate robust workflow."""
+    # Simulated side-effect store and undo directory
+    SIDE_EFFECT_STORE: Dict[str, Any] = {"count": 0, "actions": []}
+    undo_dir = Path("undo_records")
+    undo_dir.mkdir(exist_ok=True)
 
-    # Create agents
-    primary_agent = Agent(
-        os.getenv("AI_MODEL", "openai:gpt-5.4-mini"),
-        system_prompt="You are a helpful assistant.",
-    )
+    # Simple fake agents for deterministic behavior in the example
+    class FakeAgent:
+        def __init__(self, name: str):
+            self.name = name
 
-    fallback_agent = Agent(
-        "test",  # Use test model as fallback
-        system_prompt="You are a simple fallback assistant.",
-    )
+        async def run(self, prompt: str):
+            # Simulate a side-effect when the agent runs
+            entry = {"agent": self.name, "prompt": prompt, "time": datetime.now().isoformat()}
+            SIDE_EFFECT_STORE["count"] += 1
+            SIDE_EFFECT_STORE["actions"].append(entry)
+            return SimpleNamespace(output=f"{self.name}_output")
 
-    # Compensation actions
+    class FailAgent(FakeAgent):
+        async def run(self, prompt: str):
+            # Force failure for testing rollback
+            raise RuntimeError("forced failure in FailAgent")
+
+    primary_agent = FakeAgent("primary")
+    fallback_agent = FakeAgent("fallback")
+
+    # Compensation actions that write observable undo records and update the store
     async def compensate_step1(ctx):
-        print("    Undoing step 1...")
-        await asyncio.sleep(0.5)
+        print("    Undoing step 1 (writing undo record)...")
+        record = {"step": "extract", "action": "undo", "time": datetime.now().isoformat()}
+        p = undo_dir / "undo_extract.json"
+        p.write_text(json.dumps(record))
+        # reverse a side-effect if present
+        if SIDE_EFFECT_STORE["actions"]:
+            SIDE_EFFECT_STORE["actions"].pop()
+            SIDE_EFFECT_STORE["count"] = max(0, SIDE_EFFECT_STORE["count"] - 1)
+        await asyncio.sleep(0.1)
 
     async def compensate_step2(ctx):
-        print("    Undoing step 2...")
-        await asyncio.sleep(0.5)
+        print("    Undoing step 2 (writing undo record)...")
+        record = {"step": "transform", "action": "undo", "time": datetime.now().isoformat()}
+        p = undo_dir / "undo_transform.json"
+        p.write_text(json.dumps(record))
+        # reverse a side-effect if present
+        if SIDE_EFFECT_STORE["actions"]:
+            SIDE_EFFECT_STORE["actions"].pop()
+            SIDE_EFFECT_STORE["count"] = max(0, SIDE_EFFECT_STORE["count"] - 1)
+        await asyncio.sleep(0.1)
 
     # Build workflow
     workflow = RobustWorkflowOrchestrator("Data Processing Pipeline")
@@ -230,12 +346,13 @@ async def example():
         )
     )
 
+    # Force the third step to fail by using FailAgent
     workflow.add_step(
         RobustWorkflowStep(
             name="summarize",
-            agent=primary_agent,
+            agent=FailAgent("summarize_fail"),
             prompt_template="Summarize: {transform_result}",
-            fallback_agent=fallback_agent,
+            fallback_agent=None,  # no fallback so failure triggers rollback
             timeout_seconds=10.0,
             max_retries=2,
         )
@@ -247,7 +364,8 @@ async def example():
     print("\nFinal Result:")
     print(f"Status: {result['_metadata']['status']}")
     print(f"Steps completed: {result['_metadata']['steps_completed']}")
-
+    print(f"SIDE_EFFECT_STORE after run: {SIDE_EFFECT_STORE}")
+    print(f"Undo files: {[p.name for p in undo_dir.iterdir()]}")
 
 if __name__ == "__main__":
     asyncio.run(example())
