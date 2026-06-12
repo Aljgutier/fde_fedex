@@ -1,0 +1,105 @@
+= RAPID Framework — Capstone Quick Reference
+:lab-version: 1.0
+:icons: font
+
+[NOTE]
+====
+This is a one-page reference for the two RAPID controls used in this capstone.
+Keep it handy during Sessions 4 and 5.
+====
+
+---
+
+== ITC.009 — Code Review (Session 4)
+
+*How to invoke*: Start a Copilot Agent Mode session and run the skill defined in
+`.github/skills/rapid-peer-review.md`. Copilot performs the review automatically
+and saves findings to `docs/rapid-peer-review.md`.
+
+=== Six Review Criteria
+
+[cols="1,2,2", options="header"]
+|===
+| # | Criterion | Common issues that cause Fail or Needs Attention
+| 1 | *Modified-File Inventory* | Files outside the project structure created without authorization; `mock_data/` or `pyproject.toml` modified without justification
+| 2 | *Author / Reviewer Separation* | Same person coded and reviewed — expected in solo work; document the exception
+| 3 | *InfoSec Alignment* | Hardcoded API keys; `.env` accidentally staged; sensitive data in logs or print statements
+| 4 | *Reference Architecture Alignment* | Direct reads from `mock_data/` in files other than `loader.py`; missing type hints or docstrings; agent imports `deploy.py` directly (Track B)
+| 5 | *Documentation Adequacy* | Missing docstrings on public functions; `# TODO` comments left in code; OpenSpec specs out of sync with implementation
+| 6 | *Behavioral Scope Compliance* | `decision` not always `approve/deny/escalate` or `release/hold/escalate`; `rationale` is empty; tool errors not surfaced
+|===
+
+=== Ratings
+
+[horizontal]
+*Pass*:: Criterion is fully satisfied
+*Needs Attention*:: Issue present but not a hard blocker — document and decide whether to fix
+*Fail*:: Issue must be fixed before Go/No-Go
+
+=== Required Output
+
+`docs/rapid-peer-review.md` must contain:
+
+* All six criteria with individual ratings
+* A summary recommendation: *Pass*, *Conditional Pass*, or *Fail*
+* A *Required Actions* list (may be "None" if all criteria pass)
+
+---
+
+== ITC.004 — Go/No-Go Decision Gate (Session 5)
+
+*How to invoke*: Fill in `docs/go-no-go-checklist.md` manually during Session 5.
+The checklist template is pre-populated with required fields.
+
+=== Gate Inputs (all must be complete)
+
+[cols="1,2", options="header"]
+|===
+| Input | Where it comes from
+| Acceptance criteria check | `README.md` checklist — all items confirmed
+| Code review findings | `docs/rapid-peer-review.md` — all Fail findings resolved
+| Test results | `pytest tests/ -v` output — total, passed, failed, skipped
+| `openspec verify-all` | CLI output — all specs must pass
+| Backout plan | Written in the checklist — steps to revert if needed
+|===
+
+=== Decision Options
+
+[cols="1,3", options="header"]
+|===
+| Decision | When to use it
+| *Go* | All acceptance criteria met, peer review passed, no blocking defects, tests pass
+| *No-Go* | One or more blocking items remain unresolved
+| *Conditional Go* | Proceeding with documented conditions that must be resolved after the session
+|===
+
+=== Decision Rationale Requirements
+
+* *Minimum two sentences* — one sentence is not acceptable
+* Must cite specific evidence: test counts, peer review rating, acceptance criteria status
+* Must not be generic ("everything looks fine") — be specific ("14 of 15 sample requests match expected outcomes; the one mismatch on REQ-015 is accepted as an ambiguous case per the lab guide")
+
+=== Example Rationale (Conditional Go)
+
+____
+All four required pytest cases pass and `openspec verify-all` reports no failures.
+The peer review produced a Conditional Pass with one Needs Attention finding (Criterion 2,
+Author/Reviewer Separation) accepted as a known exception for the single-developer
+training context; no security or architecture findings were identified.
+We proceed with a Conditional Go pending resolution of REQ-015 ambiguous behavior
+in the next sprint.
+____
+
+---
+
+== Quick Checklist Before Submitting
+
+[cols="1,4", options="header"]
+|===
+| Session | Confirm before ending
+| 1 | `openspec list` shows models spec and at least one tool spec
+| 2 | `openspec verify` passes for all specs created so far; no direct `mock_data/` reads outside `loader.py`
+| 3 | Agent returns correct decisions for one approve/release, one deny/hold, one escalate request; `openspec verify-all` passes
+| 4 | `pytest tests/ -v` — four required cases pass; `docs/rapid-peer-review.md` written and findings addressed
+| 5 | `docs/go-no-go-checklist.md` complete with two-sentence rationale; showcase delivered
+|===

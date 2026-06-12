@@ -1,0 +1,110 @@
+[
+  {
+    "cve_id": "CVE-2024-1234",
+    "package": "requests",
+    "affected_below": "2.31.0",
+    "severity": "HIGH",
+    "cvss_score": 7.5,
+    "description": "HTTP header injection in the requests library allows a remote attacker to inject arbitrary headers via a crafted URL.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-1234"]
+  },
+  {
+    "cve_id": "CVE-2024-5678",
+    "package": "cryptography",
+    "affected_below": "41.0.6",
+    "severity": "CRITICAL",
+    "cvss_score": 9.1,
+    "description": "NULL pointer dereference in X.509 certificate chain parsing allows a remote attacker to trigger a denial of service.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-5678"]
+  },
+  {
+    "cve_id": "CVE-2024-9101",
+    "package": "pillow",
+    "affected_below": "10.3.0",
+    "severity": "HIGH",
+    "cvss_score": 8.8,
+    "description": "Buffer overflow in Pillow's image decoding pipeline allows arbitrary code execution via a maliciously crafted image file.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-9101"]
+  },
+  {
+    "cve_id": "CVE-2023-4863",
+    "package": "pillow",
+    "affected_below": "10.0.1",
+    "severity": "CRITICAL",
+    "cvss_score": 9.6,
+    "description": "Heap buffer overflow in WebP lossless image format handling allows arbitrary code execution in affected Pillow versions.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2023-4863"]
+  },
+  {
+    "cve_id": "CVE-2024-0232",
+    "package": "werkzeug",
+    "affected_below": "3.0.3",
+    "severity": "MEDIUM",
+    "cvss_score": 5.3,
+    "description": "Path traversal vulnerability in Werkzeug's static file serving allows read access to files outside the designated directory.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-0232"]
+  },
+  {
+    "cve_id": "CVE-2024-2511",
+    "package": "aiohttp",
+    "affected_below": "3.9.4",
+    "severity": "MEDIUM",
+    "cvss_score": 5.9,
+    "description": "HTTP request smuggling in aiohttp's connection handling allows cache poisoning and request hijacking in reverse-proxy configurations.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-2511"]
+  },
+  {
+    "cve_id": "CVE-2024-6221",
+    "package": "urllib3",
+    "affected_below": "2.2.2",
+    "severity": "MEDIUM",
+    "cvss_score": 5.9,
+    "description": "SSRF vulnerability in urllib3 proxy handling allows requests to be forwarded to unintended internal network targets.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-6221"]
+  },
+  {
+    "cve_id": "CVE-2024-1135",
+    "package": "gunicorn",
+    "affected_below": "22.0.0",
+    "severity": "MEDIUM",
+    "cvss_score": 5.9,
+    "description": "HTTP response splitting in Gunicorn's request parsing allows header injection via crafted chunked transfer encoding.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-1135"]
+  },
+  {
+    "cve_id": "CVE-2024-3651",
+    "package": "idna",
+    "affected_below": "3.7",
+    "severity": "MEDIUM",
+    "cvss_score": 6.5,
+    "description": "Denial of service via excessive CPU consumption when processing certain internationalized domain name inputs.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-3651"]
+  },
+  {
+    "cve_id": "CVE-2024-7592",
+    "package": "starlette",
+    "affected_below": "0.37.2",
+    "severity": "MEDIUM",
+    "cvss_score": 5.3,
+    "description": "Denial of service in multipart form data parsing allows resource exhaustion via malformed Content-Disposition headers.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-7592"]
+  },
+  {
+    "cve_id": "CVE-2024-8775",
+    "package": "ansible",
+    "affected_below": "9.3.0",
+    "severity": "MEDIUM",
+    "cvss_score": 5.0,
+    "description": "Sensitive information exposure in Ansible task output when no_log is not set for credential parameters.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-8775"]
+  },
+  {
+    "cve_id": "CVE-2024-2044",
+    "package": "pgvector",
+    "affected_below": "0.2.5",
+    "severity": "HIGH",
+    "cvss_score": 7.1,
+    "description": "SQL injection in pgvector Python client's query construction allows privilege escalation via unsanitized vector dimension parameters.",
+    "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-2044"]
+  }
+]

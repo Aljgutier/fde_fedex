@@ -1,0 +1,220 @@
+[
+  {
+    "run_id": "CI-2024-001",
+    "component": "notification-service",
+    "version": "1.2.3",
+    "branch": "release/1.2.3",
+    "triggered_by": "r.chen@fedex.com",
+    "timestamp": "2024-11-01T09:14:22Z",
+    "status": "passed",
+    "duration_seconds": 312,
+    "stages": {
+      "lint": "passed",
+      "unit_tests": "passed",
+      "integration_tests": "passed",
+      "security_scan": "passed",
+      "build": "passed"
+    },
+    "test_summary": {
+      "total": 148,
+      "passed": 148,
+      "failed": 0,
+      "skipped": 2,
+      "errors": 0
+    },
+    "coverage_percent": 91.4,
+    "artifacts": ["notification-service-1.2.3.tar.gz"]
+  },
+  {
+    "run_id": "CI-2024-002",
+    "component": "notification-service",
+    "version": "1.3.0",
+    "branch": "release/1.3.0",
+    "triggered_by": "l.garcia@fedex.com",
+    "timestamp": "2024-11-08T14:02:11Z",
+    "status": "passed",
+    "duration_seconds": 328,
+    "stages": {
+      "lint": "passed",
+      "unit_tests": "passed",
+      "integration_tests": "passed",
+      "security_scan": "passed",
+      "build": "passed"
+    },
+    "test_summary": {
+      "total": 155,
+      "passed": 155,
+      "failed": 0,
+      "skipped": 2,
+      "errors": 0
+    },
+    "coverage_percent": 92.1,
+    "artifacts": ["notification-service-1.3.0.tar.gz"]
+  },
+  {
+    "run_id": "CI-2024-003",
+    "component": "label-service",
+    "version": "2.4.1",
+    "branch": "release/2.4.1",
+    "triggered_by": "s.kim@fedex.com",
+    "timestamp": "2024-11-12T10:55:44Z",
+    "status": "passed",
+    "duration_seconds": 445,
+    "stages": {
+      "lint": "passed",
+      "unit_tests": "passed",
+      "integration_tests": "passed",
+      "security_scan": "passed",
+      "build": "passed"
+    },
+    "test_summary": {
+      "total": 203,
+      "passed": 201,
+      "failed": 0,
+      "skipped": 2,
+      "errors": 0
+    },
+    "coverage_percent": 88.7,
+    "artifacts": ["label-service-2.4.1.tar.gz"]
+  },
+  {
+    "run_id": "CI-2024-004",
+    "component": "shipping-api",
+    "version": "2.4.1",
+    "branch": "release/2.4.1",
+    "triggered_by": "t.walsh@fedex.com",
+    "timestamp": "2024-11-14T08:30:00Z",
+    "status": "passed",
+    "duration_seconds": 621,
+    "stages": {
+      "lint": "passed",
+      "unit_tests": "passed",
+      "integration_tests": "passed",
+      "security_scan": "passed",
+      "build": "passed"
+    },
+    "test_summary": {
+      "total": 334,
+      "passed": 334,
+      "failed": 0,
+      "skipped": 4,
+      "errors": 0
+    },
+    "coverage_percent": 87.2,
+    "artifacts": ["shipping-api-2.4.1.tar.gz"]
+  },
+  {
+    "run_id": "CI-2024-005",
+    "component": "notification-service",
+    "version": "1.1.0",
+    "branch": "hotfix/1.1.0-sms-retry",
+    "triggered_by": "r.chen@fedex.com",
+    "timestamp": "2024-09-22T16:45:00Z",
+    "status": "failed",
+    "duration_seconds": 289,
+    "stages": {
+      "lint": "passed",
+      "unit_tests": "failed",
+      "integration_tests": "not_run",
+      "security_scan": "not_run",
+      "build": "not_run"
+    },
+    "test_summary": {
+      "total": 132,
+      "passed": 119,
+      "failed": 13,
+      "skipped": 0,
+      "errors": 0
+    },
+    "coverage_percent": 78.3,
+    "failure_details": [
+      "test_sms_exponential_backoff_respects_max_delay — AssertionError: expected 3200ms, got 6400ms",
+      "test_sms_queue_priority_high_before_low — queue ordering not guaranteed under concurrent writes",
+      "test_sms_retry_count_not_exceeded — mock provider returned unexpected 503 during retry window"
+    ],
+    "artifacts": []
+  },
+  {
+    "run_id": "CI-2024-006",
+    "component": "label-service",
+    "version": "3.0.0",
+    "branch": "release/3.0.0",
+    "triggered_by": "s.kim@fedex.com",
+    "timestamp": "2024-11-19T11:10:33Z",
+    "status": "failed",
+    "duration_seconds": 512,
+    "stages": {
+      "lint": "passed",
+      "unit_tests": "passed",
+      "integration_tests": "failed",
+      "security_scan": "passed",
+      "build": "passed"
+    },
+    "test_summary": {
+      "total": 231,
+      "passed": 214,
+      "failed": 17,
+      "skipped": 0,
+      "errors": 0
+    },
+    "coverage_percent": 85.1,
+    "failure_details": [
+      "test_international_label_non_ascii_name — UnicodeEncodeError: codec 'latin-1' cannot encode character \\u4e2d",
+      "test_concurrent_tracking_number_uniqueness — AssertionError: duplicate tracking number FDXL00039281 issued to two concurrent requests",
+      "test_thermal_printer_203dpi_barcode_scan — scan failure rate 4.2%, exceeds 1% threshold"
+    ],
+    "artifacts": ["label-service-3.0.0.tar.gz"]
+  },
+  {
+    "run_id": "CI-2024-007",
+    "component": "notification-service",
+    "version": "3.0.0",
+    "branch": "release/3.0.0",
+    "triggered_by": "l.garcia@fedex.com",
+    "timestamp": "2024-11-20T13:00:00Z",
+    "status": "passed",
+    "duration_seconds": 341,
+    "stages": {
+      "lint": "passed",
+      "unit_tests": "passed",
+      "integration_tests": "passed",
+      "security_scan": "passed",
+      "build": "passed"
+    },
+    "test_summary": {
+      "total": 162,
+      "passed": 162,
+      "failed": 0,
+      "skipped": 3,
+      "errors": 0
+    },
+    "coverage_percent": 90.8,
+    "artifacts": ["notification-service-3.0.0.tar.gz"]
+  },
+  {
+    "run_id": "CI-2024-008",
+    "component": "shipping-api",
+    "version": "3.0.0",
+    "branch": "release/3.0.0",
+    "triggered_by": "t.walsh@fedex.com",
+    "timestamp": "2024-11-20T14:22:17Z",
+    "status": "passed",
+    "duration_seconds": 658,
+    "stages": {
+      "lint": "passed",
+      "unit_tests": "passed",
+      "integration_tests": "passed",
+      "security_scan": "passed",
+      "build": "passed"
+    },
+    "test_summary": {
+      "total": 351,
+      "passed": 351,
+      "failed": 0,
+      "skipped": 5,
+      "errors": 0
+    },
+    "coverage_percent": 88.9,
+    "artifacts": ["shipping-api-3.0.0.tar.gz"]
+  }
+]

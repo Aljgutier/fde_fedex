@@ -1,0 +1,167 @@
+[
+  {
+    "ticket_id": "SHIP-1001",
+    "title": "Intermittent timeout on bulk label generation endpoint",
+    "status": "open",
+    "priority": "medium",
+    "blocking_release": false,
+    "component": "shipping-api",
+    "affected_versions": ["2.4.x"],
+    "opened_by": "r.chen@fedex.com",
+    "description": "Bulk label generation times out under high load (>500 requests/min). Workaround: reduce batch size to 50 per request."
+  },
+  {
+    "ticket_id": "SHIP-1042",
+    "title": "Rate limiter regression causes 429s for authenticated users",
+    "status": "open",
+    "priority": "high",
+    "blocking_release": true,
+    "component": "shipping-api",
+    "affected_versions": ["2.4.0", "2.4.1"],
+    "opened_by": "t.walsh@fedex.com",
+    "description": "Authenticated API users receive HTTP 429 after 100 requests/min instead of the contracted 1000 requests/min. Introduced in 2.4.0. No workaround available."
+  },
+  {
+    "ticket_id": "SHIP-1055",
+    "title": "Address validation returns incorrect ZIP+4 for PO Boxes",
+    "status": "resolved",
+    "priority": "medium",
+    "blocking_release": false,
+    "component": "shipping-api",
+    "affected_versions": ["2.3.x"],
+    "opened_by": "m.patel@fedex.com",
+    "description": "PO Box addresses returned wrong ZIP+4 suffix. Fixed in 2.4.0."
+  },
+  {
+    "ticket_id": "LABEL-203",
+    "title": "PDF label generation fails for international shipments with non-ASCII characters",
+    "status": "open",
+    "priority": "high",
+    "blocking_release": true,
+    "component": "label-service",
+    "affected_versions": ["2.4.x", "3.0.x"],
+    "opened_by": "s.kim@fedex.com",
+    "description": "Labels for shipments with recipient names containing non-ASCII characters (accented letters, CJK characters) produce malformed PDFs that fail USPS/Canada Post barcode scans."
+  },
+  {
+    "ticket_id": "LABEL-218",
+    "title": "QR code contrast ratio fails WCAG AA for thermal printers",
+    "status": "open",
+    "priority": "low",
+    "blocking_release": false,
+    "component": "label-service",
+    "affected_versions": ["3.0.x"],
+    "opened_by": "a.roberts@fedex.com",
+    "description": "QR codes on 203 dpi thermal printers fall below WCAG 2.1 AA contrast ratio. No impact on barcode scanners. Accessibility improvement tracked for Q3."
+  },
+  {
+    "ticket_id": "LABEL-225",
+    "title": "Duplicate tracking number issued for concurrent label requests",
+    "status": "open",
+    "priority": "critical",
+    "blocking_release": true,
+    "component": "label-service",
+    "affected_versions": ["3.0.0"],
+    "opened_by": "t.walsh@fedex.com",
+    "description": "Under concurrent load, the label service issues identical tracking numbers for distinct shipments. Affects 0.3% of requests. Root cause is a race condition in the tracking number sequence generator."
+  },
+  {
+    "ticket_id": "NOTIF-055",
+    "title": "SMS notifications delayed by up to 4 minutes during peak hours",
+    "status": "resolved",
+    "priority": "medium",
+    "blocking_release": false,
+    "component": "notification-service",
+    "affected_versions": ["1.1.x"],
+    "opened_by": "l.garcia@fedex.com",
+    "description": "SMS delivery delays traced to provider throttling. Resolved by implementing exponential backoff and queue prioritization in 1.2.0."
+  },
+  {
+    "ticket_id": "NOTIF-089",
+    "title": "Email templates missing FedEx branding footer in dark mode",
+    "status": "open",
+    "priority": "low",
+    "blocking_release": false,
+    "component": "notification-service",
+    "affected_versions": ["1.2.x"],
+    "opened_by": "a.roberts@fedex.com",
+    "description": "Dark mode email clients (Gmail, Apple Mail) hide the FedEx branded footer div due to a missing prefers-color-scheme media query. Cosmetic issue only — no functional impact."
+  },
+  {
+    "ticket_id": "NOTIF-102",
+    "title": "Webhook retry logic does not respect Retry-After header",
+    "status": "open",
+    "priority": "medium",
+    "blocking_release": false,
+    "component": "notification-service",
+    "affected_versions": ["1.2.x", "1.3.x"],
+    "opened_by": "r.chen@fedex.com",
+    "description": "Outbound webhooks retry immediately on HTTP 429 instead of honoring the Retry-After response header. May cause downstream partner rate-limit violations."
+  },
+  {
+    "ticket_id": "API-GW-301",
+    "title": "JWT refresh token not invalidated on password reset",
+    "status": "open",
+    "priority": "critical",
+    "blocking_release": true,
+    "component": "api-gateway",
+    "affected_versions": ["4.x"],
+    "opened_by": "security@fedex.com",
+    "description": "When a user resets their password, existing JWT refresh tokens remain valid until natural expiry (24 hours). Security team classifies this as a blocking security defect."
+  },
+  {
+    "ticket_id": "API-GW-315",
+    "title": "CORS preflight returns incorrect Allow-Origin for internal microservices",
+    "status": "open",
+    "priority": "medium",
+    "blocking_release": false,
+    "component": "api-gateway",
+    "affected_versions": ["4.x"],
+    "opened_by": "m.patel@fedex.com",
+    "description": "Internal service-to-service CORS preflight responses include an overly broad wildcard origin. No external exposure — internal network only."
+  },
+  {
+    "ticket_id": "TRACK-088",
+    "title": "Tracking events out of chronological order for multi-leg shipments",
+    "status": "open",
+    "priority": "high",
+    "blocking_release": true,
+    "component": "tracking-service",
+    "affected_versions": ["5.2.x"],
+    "opened_by": "s.kim@fedex.com",
+    "description": "Multi-leg international shipments display tracking events out of chronological order due to timezone normalization missing for hub scan events."
+  },
+  {
+    "ticket_id": "TRACK-095",
+    "title": "Last-mile carrier tracking feed drops events from certain regional carriers",
+    "status": "open",
+    "priority": "medium",
+    "blocking_release": false,
+    "component": "tracking-service",
+    "affected_versions": ["5.x"],
+    "opened_by": "l.garcia@fedex.com",
+    "description": "Tracking feeds from six regional last-mile carriers are silently dropped when they use non-standard event code formats. Affects <2% of shipments in rural areas."
+  },
+  {
+    "ticket_id": "BILLING-441",
+    "title": "Dimensional weight rounding error for international freight invoices",
+    "status": "open",
+    "priority": "high",
+    "blocking_release": true,
+    "component": "billing-service",
+    "affected_versions": ["3.1.x"],
+    "opened_by": "finance@fedex.com",
+    "description": "Dimensional weight rounding uses ceiling instead of standard commercial rounding for international freight, causing systematic overbilling of $0.01–$0.12 per shipment. Finance team requires correction before next billing cycle."
+  },
+  {
+    "ticket_id": "BILLING-452",
+    "title": "Fuel surcharge not applied to third-party billing accounts",
+    "status": "resolved",
+    "priority": "high",
+    "blocking_release": false,
+    "component": "billing-service",
+    "affected_versions": ["3.0.x"],
+    "opened_by": "finance@fedex.com",
+    "description": "Third-party billing accounts were excluded from the Q2 fuel surcharge update. Fixed and retroactively applied in 3.1.1."
+  }
+]

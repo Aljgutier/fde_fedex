@@ -1,0 +1,110 @@
+[
+  {
+    "request_id": "REL-001",
+    "component": "notification-service",
+    "version": "1.2.3",
+    "requirements_file": "mock_data/requirements_notification_service.txt",
+    "changelog_version": "1.2.3",
+    "ci_run_id": "CI-2024-001",
+    "requested_by": "r.chen@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "release",
+    "outcome_reason": "Clean requirements (no CVEs), no blocking tickets for notification-service 1.2.x, CI-2024-001 passes all stages, and changelog entry 1.2.3 is well-formed."
+  },
+  {
+    "request_id": "REL-002",
+    "component": "notification-service",
+    "version": "1.3.0",
+    "requirements_file": "mock_data/requirements_notification_service.txt",
+    "changelog_version": "1.3.0",
+    "ci_run_id": "CI-2024-002",
+    "requested_by": "l.garcia@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "release",
+    "outcome_reason": "Clean requirements (no CVEs), no blocking tickets for notification-service 1.3.x, CI-2024-002 passes all stages, and changelog entry 1.3.0 is missing — no [1.3.0] entry exists in CHANGELOG.md. The agent should note this gap as informational, not blocking, because every other check is clean and this is a minor version bump."
+  },
+  {
+    "request_id": "REL-003",
+    "component": "notification-service",
+    "version": "1.1.0",
+    "requirements_file": "mock_data/requirements_notification_service.txt",
+    "changelog_version": "1.1.0",
+    "ci_run_id": "CI-2024-005",
+    "requested_by": "r.chen@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "hold",
+    "outcome_reason": "CI-2024-005 reports 13 unit test failures in SMS retry logic. No CVEs and no blocking tickets, but failing tests prevent release."
+  },
+  {
+    "request_id": "REL-004",
+    "component": "tracking-service",
+    "version": "5.2.1",
+    "requirements_file": "mock_data/requirements_tracking_service.txt",
+    "changelog_version": "2.4.1",
+    "ci_run_id": "CI-2024-001",
+    "requested_by": "s.kim@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "hold",
+    "outcome_reason": "TRACK-088 is open, high-priority, and marked blocking_release for tracking-service 5.2.x. No CVEs present and CI passes, but the blocking ticket prevents release."
+  },
+  {
+    "request_id": "REL-005",
+    "component": "label-service",
+    "version": "2.4.1",
+    "requirements_file": "mock_data/requirements_label_service.txt",
+    "changelog_version": "2.4.1",
+    "ci_run_id": "CI-2024-003",
+    "requested_by": "s.kim@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "escalate",
+    "outcome_reason": "CVE-2024-1234 (HIGH, CVSS 7.5) detected in requests 2.30.0. LABEL-203 is open and blocking for label-service 2.4.x. Both a HIGH CVE and a blocking defect present — combination warrants escalation."
+  },
+  {
+    "request_id": "REL-006",
+    "component": "shipping-api",
+    "version": "2.4.1",
+    "requirements_file": "mock_data/requirements_shipping_api.txt",
+    "changelog_version": "2.4.1",
+    "ci_run_id": "CI-2024-004",
+    "requested_by": "t.walsh@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "escalate",
+    "outcome_reason": "CVE-2024-5678 (CRITICAL, CVSS 9.1) detected in cryptography 41.0.5. SHIP-1042 is open and blocking for shipping-api 2.4.1. A CRITICAL severity CVE alone is sufficient to escalate."
+  },
+  {
+    "request_id": "REL-007",
+    "component": "label-service",
+    "version": "3.0.0",
+    "requirements_file": "mock_data/requirements_label_service.txt",
+    "changelog_version": "3.0.0",
+    "ci_run_id": "CI-2024-006",
+    "requested_by": "s.kim@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "escalate",
+    "outcome_reason": "CVE-2024-1234 (HIGH) in requirements, two open blocking tickets (LABEL-203, LABEL-225), and CI-2024-006 reports 17 integration test failures. Multiple simultaneous signals all requiring escalation."
+  },
+  {
+    "request_id": "REL-008",
+    "component": "shipping-api",
+    "version": "3.0.0",
+    "requirements_file": "mock_data/requirements_shipping_api.txt",
+    "changelog_version": "3.0.0",
+    "ci_run_id": "CI-2024-008",
+    "requested_by": "t.walsh@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "escalate",
+    "outcome_reason": "CVE-2024-5678 (CRITICAL, CVSS 9.1) in cryptography 41.0.5. CI passes and no blocking tickets, but a CRITICAL severity CVE is non-negotiable — escalate for security team review."
+  },
+  {
+    "request_id": "REL-009",
+    "component": "notification-service",
+    "version": "3.0.0",
+    "requirements_file": "mock_data/requirements_notification_service.txt",
+    "changelog_version": "3.0.0",
+    "ci_run_id": "CI-2024-007",
+    "requested_by": "l.garcia@fedex.com",
+    "target_environment": "production",
+    "expected_outcome": "escalate",
+    "outcome_reason": "The changelog entry for 3.0.0 is a major version bump from 2.4.1 but documents no breaking changes. The jump skips no intermediate minor versions, but major version increments under SemVer signal breaking API changes — the absence of any breaking change documentation is a coherence gap requiring escalation and architectural review."
+  }
+]

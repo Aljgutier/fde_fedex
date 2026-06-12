@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "release-agent"
+version = "0.1.0"
+description = "FedEx Release Readiness and Dependency Risk Agent — Track B Capstone"
+requires-python = ">=3.11"
+
+dependencies = [
+    # Pydantic AI agent framework
+    "pydantic-ai>=0.0.14",
+    # Anthropic (Claude) model support
+    "anthropic>=0.40",
+    # Pydantic v2 structured output models
+    "pydantic>=2.0",
+    # PEP 440 version parsing for dependency_scanner.is_version_affected()
+    "packaging>=24.0",
+    # Environment variable management
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+run-pipeline = "pipeline.runner:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["pipeline", "data"]
