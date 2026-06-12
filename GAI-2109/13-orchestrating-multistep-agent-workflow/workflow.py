@@ -215,7 +215,17 @@ class WorkflowOrchestrator:
         bare ``KeyError``. The except branch below converts that into
         a diagnostic naming both the step and the missing key.
         """
-        # YOUR CODE HERE
+        try:
+            prompt = step.prompt_template.format(**self.context.data)
+        except KeyError as exc:
+            missing_key = exc.args[0]
+            raise KeyError(
+                f"Step '{step.name}' prompt is missing context key: {missing_key}"
+            ) from exc
+
+        result = await step.agent.run(prompt)
+        self.context.set(f"step_{step.name}_result", result.output)
+        return result.output
 
     def _get_results(self) -> Dict[str, Any]:
         """Get workflow results."""

@@ -16,3 +16,7 @@
 {"timestamp": "2026-06-12T13:14:57.689816", "user_id": "user_1", "tokens": 125, "cost_usd": 1.875e-05, "metadata": {"test_id": "shipping-time"}}
 {"timestamp": "2026-06-12T13:14:57.689816", "user_id": "user_2", "tokens": 92, "cost_usd": 1.3799999999999998e-05, "metadata": {"test_id": "payment-methods"}}
 {"timestamp": "2026-06-12T13:14:57.689816", "user_id": "user_0", "tokens": 88, "cost_usd": 1.3199999999999997e-05, "metadata": {"test_id": "order-status"}}
+{"timestamp": "2026-06-12T13:18:29.111437", "user_id": "user_0", "tokens": 147, "cost_usd": 2.2049999999999997e-05, "metadata": {"test_id": "return-policy"}}
+{"timestamp": "2026-06-12T13:18:29.111437", "user_id": "user_1", "tokens": 130, "cost_usd": 1.95e-05, "metadata": {"test_id": "shipping-time"}}
+{"timestamp": "2026-06-12T13:18:29.111437", "user_id": "user_2", "tokens": 101, "cost_usd": 1.5149999999999999e-05, "metadata": {"test_id": "payment-methods"}}
+{"timestamp": "2026-06-12T13:18:29.111437", "user_id": "user_0", "tokens": 116, "cost_usd": 1.74e-05, "metadata": {"test_id": "order-status"}}
