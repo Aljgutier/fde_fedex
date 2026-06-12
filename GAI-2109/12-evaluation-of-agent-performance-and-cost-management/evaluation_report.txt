@@ -1,0 +1,65 @@
+============================================================
+  AGENT EVALUATION REPORT
+============================================================
+
+Timestamp: 2026-06-12T13:16:02.069700
+
+SUMMARY:
+  Keyword Pass Rate: 0/4 (0.0%)
+  Total Cost: $0.0001
+  Total Tokens: 494
+  Avg Latency: 2534ms
+  Avg Judge Helpfulness: 0.88
+  Avg Judge Correctness: 0.90
+  Avg Judge Completeness: 0.82
+
+DETAILED RESULTS:
+
+FAIL | return-policy
+  Question: What is your return policy?
+  Response: Our return policy is:
+
+- **Returns are accepted within 30 days** of delivery.
+- Items must be **unus...
+  Tokens: 147 | Cost: $0.00002 | Latency: 1914ms
+  Missing keywords: receipt
+  Judge avg: 1.00 (help=1.00, corr=1.00, comp=1.00)
+  Judge rationale: The agent's response effectively addresses the user's question about the return policy. It includes all primary aspects: a return window of 30 days, the condition for returned items, exceptions like final sale or personalized products, and details about the refund process. The response also goes beyond the basic inquiry by offering further assistance with the return process or eligibility queries. The mention of keywords such as '30 days' and 'refund' aligns with the expected guidance, ensuring the response is both correct and complete.
+  NOTE: Keywords failed but judge sees the response as reasonable.
+
+FAIL | shipping-time
+  Question: How long does shipping take?
+  Response: Shipping time depends on the delivery method and your location:
+
+- **Standard shipping:** usually **...
+  Tokens: 130 | Cost: $0.00002 | Latency: 1100ms
+  Missing keywords: 3-5 business days, tracking
+  Judge avg: 0.70 (help=0.80, corr=0.70, comp=0.60)
+  Judge rationale: The agent's response effectively outlines the shipping times for different methods and includes processing time, which is helpful. However, the response mentions 3-7 business days for standard shipping, which does not exactly align with the expected 3-5 days, slightly reducing correctness. Additionally, the response lacks information about tracking options, which was expected based on the guidance, affecting the completeness of the answer.
+  NOTE: Keywords failed but judge sees the response as reasonable.
+
+FAIL | payment-methods
+  Question: What payment methods do you accept?
+  Response: We accept the following payment methods:
+
+- Major credit and debit cards
+- PayPal
+- Apple Pay and Go...
+  Tokens: 101 | Cost: $0.00002 | Latency: 5957ms
+  Missing keywords: credit card
+  Judge avg: 1.00 (help=1.00, corr=1.00, comp=1.00)
+  Judge rationale: The agent's response effectively answers the question about accepted payment methods by listing several common options including major credit and debit cards, PayPal, along with Apple Pay and Google Pay. The response further enhances user support by offering additional assistance with billing questions or location-specific information, fully addressing the user’s inquiry while directly hitting the expected keywords 'credit card' and 'PayPal'.
+  NOTE: Keywords failed but judge sees the response as reasonable.
+
+FAIL | order-status
+  Question: Can you tell me the status of my order and if it has shipped?
+  Response: I can help with that, but I don’t have access to your order details yet.
+
+Please send me one of the ...
+  Tokens: 116 | Cost: $0.00002 | Latency: 1164ms
+  Missing keywords: order status, shipped
+  Judge avg: 0.77 (help=0.70, corr=0.90, comp=0.70)
+  Judge rationale: The agent's response was somewhat helpful as they explained the inability to provide the exact order status without further details, which is correct. However, the response did not provide a direct answer about the current order status or whether it has shipped, referencing the need for additional information. This approach is necessary for privacy and accuracy but it could delay immediate assistance. The response is correct in the procedures for obtaining detailed information. Completeness is rated slightly higher as the agent offers a follow-up step with options to provide necessary details for further assistance, aligning with the guidelines for order inquiries.
+  NOTE: Keywords failed but judge sees the response as reasonable.
+
+============================================================
