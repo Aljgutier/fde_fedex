@@ -1,0 +1,323 @@
+# 5 Real World Patterns Spec Mgmt LabNotes.md
+
+This lab is different in three ways:
+
+You will fix something without SDD. A small cosmetic issue that does not warrant the spec workflow. This is the "when SDD is overkill" judgment call from earlier in the course, practiced for real.
+
+You will write specs by hand. Instead of the AI generating proposals and delta specs, you will write them yourself. The AI becomes your reviewer, not your author.
+
+You will modify existing specs. The dynamic pricing feature changes behavior that has been specified since earlier labs. For the first time, your delta specs will include MODIFIED and REMOVED sections alongside ADDED.
+
+
+# Fix a cosemetic issue
+Find a cosmetic issue. Open the app at http://localhost:8000 and look at it with a critical eye. After several labs of AI-generated implementation, there are likely rough edges. Look for things like, for example:
+
+Agent Prompt
+```
+"The financial dashboard table header text is hard to read against the dark background. Make it match the style of the order queue headers."
+```
+
+Verify and reflect. Refresh the browser (Ctrl+Shift+R) and confirm the fix looks right.
+
+Now ask yourself: would a spec have helped here?
+
+The intent was self-evident. You could describe the fix in one sentence
+
+No behavioral requirement changed. The system works the same way
+
+# Identify Pricing Assumptions in the Spec Suite
+
+Before writing delta specs, you need to know what you are modifying. This exercise reviews the accumulated specs to identify where pricing assumptions are baked in.
+
+```sh
+cat openspec/specs/drink-size-selection/spec.md
+cat openspec/specs/order-receipt/spec.md
+cat openspec/specs/financial-dashboard/spec.md
+```
+
+As you read, note requirements that assume fixed prices. For example:
+
+* The size selection spec says the menu displays prices per size, but assumes the price is always the base price from menu.json
+* The receipt spec shows itemized pricing with a fixed base price
+* The financial dashboard shows revenue computed from order totals, but does not distinguish between pricing tiers
+
+Identify what changes. For the dynamic pricing feature (full price during peak, 20% off during off-peak), note which existing requirements need to change:
+
+* Menu display: During off-peak, prices need to show the original price (strikethrough) and the discounted price. During peak, prices show normally.
+
+* Order placement: The backend needs to calculate the price based on the active pricing tier, not just the static menu price.
+
+* Receipts: Off-peak orders need a discount line item showing the savings.
+
+* Financial dashboard: Revenue needs to distinguish peak vs. off-peak to show the impact of discounting.
+
+* Also note what is entirely new (not modifying existing specs):
+
+* Pricing tier definitions (peak windows, discount percentage)
+
+* Time simulation slider for testing
+
+* Backend pricing tier determination
+
+And what is being removed:
+
+* The assumption that drink prices are always the fixed base size price from menu.json
+
+* You will use these notes in the next exercise when writing the delta specs
+
+# Write Specs by Hand
+
+This is the core exercise of the lab. You will write a proposal and delta specs without AI generation. The AI becomes your reviewer after you finish writing.
+
+**Scaffold the change**
+In your agent’s chat panel, invoke the new command with the argument add-dynamic-pricing (see Command syntax above for the exact form).
+
+  * This creates openspec/changes/add-dynamic-pricing/ with an empty structure.
+
+
+**Write the Proposal**
+Write the proposal. Open openspec/changes/add-dynamic-pricing/proposal.md in VS Code and write it by hand. Use the structure you have seen across the earlier labs of AI-generated proposals:
+
+* Why: BeanBotics uses fixed pricing regardless of time of day. Coffee shops typically offer off-peak discounts to attract customers during slow periods. Dynamic pricing lets the business run full prices during peak hours and discount during off-peak.
+* What changes: Pricing tier definitions (peak and off-peak), time simulation for testing, modified menu display, modified order pricing, modified receipts, modified financial dashboard.
+* Scope boundaries: What is out of scope? (Suggestions: per-drink discount overrides, customer-facing tier schedule, historical pricing data, different discount percentages for different times.)
+* Keep it skimmable in two minutes.
+
+
+Create these folders and files inside openspec/changes/add-dynamic-pricing/specs/:
+
+```
+mkdir -p openspec/changes/add-dynamic-pricing/specs/pricing-tiers
+mkdir -p openspec/changes/add-dynamic-pricing/specs/menu-display
+mkdir -p openspec/changes/add-dynamic-pricing/specs/order-pricing
+mkdir -p openspec/changes/add-dynamic-pricing/specs/order-receipt
+mkdir -p openspec/changes/add-dynamic-pricing/specs/financial-dashboard
+
+touch openspec/changes/add-dynamic-pricing/specs/pricing-tiers/spec.md
+touch openspec/changes/add-dynamic-pricing/specs/menu-display/spec.md
+touch openspec/changes/add-dynamic-pricing/specs/order-pricing/spec.md
+touch openspec/changes/add-dynamic-pricing/specs/order-receipt/spec.md
+touch openspec/changes/add-dynamic-pricing/specs/financial-dashboard/spec.md
+```
+
+Your change folder should now look like this:
+
+
+Your change folder should now look like this:
+```
+openspec/changes/add-dynamic-pricing/
+├── proposal.md                          ← written in Step 2
+└── specs/
+    ├── pricing-tiers/
+    │   └── spec.md                      ← ADDED: tier definitions, time slider
+    ├── menu-display/
+    │   └── spec.md                      ← MODIFIED: strikethrough + discounted price
+    ├── order-pricing/
+    │   └── spec.md                      ← MODIFIED: tier-based price calculation
+    ├── order-receipt/
+    │   └── spec.md                      ← MODIFIED: discount line item
+    └── financial-dashboard/
+        └── spec.md                      ← MODIFIED: peak vs. off-peak breakdown
+
+```
+
+
+**Fill in the Spec Files**
+Writing five delta specs from scratch would take longer than the lab allows. Instead, we are providing three of the five delta specs for you and asking you to write the remaining two. This lets you focus your time on the skill this exercise teaches. Writing ADDED, MODIFIED, and REMOVED sections. Without spending the full lab on spec authoring alone.
+
+In a real project, you would write all of them. The three we provide are realistic examples of what the AI would generate if you invoked continue: study them before writing your own.
+
+**Provided:** menu-display/spec.md
+
+```md
+# Delta Spec: Menu Display — Dynamic Pricing
+
+## MODIFIED
+
+### Requirement: Menu cards display size options with prices
+
+**Previous:** Each menu card SHALL display a size selector showing all available sizes (small, medium, large) with their corresponding prices.
+
+**Updated:** Each menu card SHALL display a size selector showing all available sizes (small, medium, large) with pricing that reflects the active pricing tier. During peak hours, prices display normally. During off-peak hours, each size option SHALL show the original price with a strikethrough and the discounted price beside it. A pricing tier indicator SHALL be visible on the menu showing whether peak or off-peak pricing is active.
+
+#### Scenario: Menu during peak hours
+- **WHEN** the active time is within a peak window (7:00am-9:00am or 11:30am-1:30pm)
+- **THEN** each size option shows its base price normally with no discount indicators
+- **AND** the menu displays a "Peak Pricing" indicator
+
+#### Scenario: Menu during off-peak hours
+- **WHEN** the active time is outside all peak windows
+- **THEN** each size option shows the original base price with a strikethrough and the discounted price (base price minus 20%) beside it
+- **AND** the menu displays an "Off-Peak Pricing — 20% Off" indicator
+
+#### Scenario: Prices update when time changes
+- **WHEN** the customer adjusts the time simulation slider from a peak time to an off-peak time
+- **THEN** the menu prices update immediately to show strikethrough and discounted prices without a page reload
+
+```
+
+**PROVIDEDL** order-pricing/spec.md
+```
+# Delta Spec: Order Pricing — Dynamic Pricing
+
+## MODIFIED
+
+### Requirement: Order is placed with the selected size
+
+**Previous:** When the customer clicks the order button, the system SHALL send the selected size to the API instead of always sending "medium".
+
+**Updated:** When the customer clicks the order button, the system SHALL send the selected size and the current simulated time to the API. The backend SHALL determine the active pricing tier from the simulated time and calculate the base drink price accordingly: full price during peak hours, 20% off during off-peak hours. Customization surcharges (extra shot, milk alternatives, whipped cream) SHALL NOT be discounted — only the base drink price is affected.
+
+#### Scenario: Order placed during peak hours
+- **WHEN** the customer places an order for a Large Neural Network Latte ($6.50) at 8:00am (peak)
+- **THEN** the backend uses $6.50 as the base price
+- **AND** the order total reflects the full base price plus any customization surcharges
+
+#### Scenario: Order placed during off-peak hours
+- **WHEN** the customer places an order for a Large Neural Network Latte ($6.50) at 3:00pm (off-peak)
+- **THEN** the backend applies a 20% discount to the base price: $6.50 × 0.80 = $5.20
+- **AND** the order total reflects $5.20 plus any customization surcharges at full price
+
+#### Scenario: Customization surcharges are not discounted
+- **WHEN** the customer places an order at 3:00pm (off-peak) for a Large Neural Network Latte with an extra espresso shot (+$0.75)
+- **THEN** the base price is discounted to $5.20 but the extra shot remains $0.75
+- **AND** the pre-tax subtotal is $5.95
+
+#### Scenario: Price is locked at order placement time
+- **WHEN** the customer places an order at 8:59am (peak) and the time crosses into off-peak (9:01am) before the order is completed
+- **THEN** the order retains the peak price from when it was placed
+
+## REMOVED
+
+### Assumption: Drink prices are always the base size price
+**Reason:** Drink prices now vary by time of day. The base size price in
+```
+
+**PROVIDED:** financial-dashboard/spec.md
+```
+# Delta Spec: Financial Dashboard — Dynamic Pricing
+
+## MODIFIED
+
+### Requirement: Aggregate financial metrics display
+
+**Previous:** The frontend SHALL display a financial dashboard showing three aggregate metrics: total revenue (sum of all order totals), total COGS (sum of all order COGS), and gross margin (revenue minus COGS). The dashboard SHALL appear alongside the order board.
+
+**Updated:** The financial dashboard SHALL display aggregate metrics broken down by pricing tier. The dashboard SHALL show: total revenue, total COGS, and gross margin as before, plus a breakdown showing peak revenue vs. off-peak revenue. This allows the business to see the impact of off-peak discounting on overall revenue and margins.
+
+#### Scenario: Dashboard distinguishes peak and off-peak revenue
+- **WHEN** orders have been placed during both peak and off-peak hours
+- **THEN** the dashboard displays total revenue with a breakdown showing peak revenue and off-peak revenue separately
+
+#### Scenario: Off-peak margins are lower than peak margins
+- **WHEN** the same drink is ordered during peak and off-peak hours
+- **THEN** the off-peak order shows lower revenue but the same COGS
+- **AND** the off-peak gross margin is lower than the peak gross margin
+
+### Requirement: Per-order financial breakdown
+
+**Previous:** The dashboard SHALL include a per-order breakdown table showing each order's revenue (order total), COGS, and margin (revenue minus COGS).
+
+**Updated:** The per-order breakdown table SHALL include a pricing tier column indicating whether each order was placed during peak or off-peak hours. For off-peak orders, the revenue column reflects the discounted price.
+
+#### Scenario: Per-order row shows pricing tier
+- **WHEN** an order was placed during off-peak hours
+- **THEN** the per-order row displays "Off-Peak" in the pricing tier column
+- **AND** the revenue reflects the discounted base price plus any full-price customization surcharges
+```
+
+
+**YOU WRITE** pricing-tiers/spec.md
+
+Cover these requirements:
+
+* Pricing tier definitions: Define the two tiers. Peak windows (7:00am-9:00am and 11:30am-1:30pm) at full price, off-peak (all other hours) at 20% off base drink prices. Specify that customization surcharges are NOT discounted.
+
+* Time simulation slider: The UI must include a time-of-day slider for selecting the simulated current time. The system uses the slider value to determine the active tier. Menu and pricing must update immediately when the slider changes.
+
+* Backend time parameter: The API accepts an optional time parameter that overrides server time for pricing tier determination.
+
+* Write Given/When/Then scenarios for at least two of these requirements. Use the ADDED section format and RFC 2119 keywords (MUST, SHALL, MUST NOT) as you have seen in every previous lab.
+
+**YOU WRITE:**order-receipt/spec.md
+
+Open openspec/changes/add-dynamic-pricing/specs/order-receipt/spec.md and write it yourself. This is a MODIFIED spec. You are changing existing receipt behavior.
+
+Before writing, read the current receipt spec to see what you are modifying:
+
+cat openspec/specs/order-receipt/spec.md
+You need to modify the receipt to handle off-peak discounts. Cover:
+
+MODIFIED. Receipt line items: Off-peak orders must include an "Off-Peak Discount (20%)" line item showing the discount amount between the base price and the customizations. The subtotal, tax, and total must reflect the discounted price. Peak orders display as they do today (no changes).
+
+Include the Previous and Updated text for the requirement you are modifying. Quote the previous version from the existing spec in openspec/specs/order-receipt/spec.md. Write at least one Given/When/Then scenario showing a receipt with the discount line item.
+
+
+**AI Review all Specs**
+
+```
+Read the proposal and delta specs I wrote in
+openspec/changes/add-dynamic-pricing/. Compare them
+against the existing specs in openspec/specs/.
+
+Review for:
+- Gaps: requirements I missed or scenarios I didn't cover
+- Ambiguities: language that could be interpreted multiple ways
+- Conflicts: new requirements that contradict existing ones
+- Edge cases: boundary conditions I didn't address
+
+Tell me what's missing or unclear.
+Read the AI’s feedback carefully. It may identify:
+```
+
+**Implement Dynamic Pricing**
+
+fast forward command ... create all specs ... creates design and tasks
+
+```
+/opsx-ff
+```
+
+* clear context and apply
+
+```
+/opsx-apply
+```
+
+* verify in the browser
+
+Time simulation control visible: You should see a control in the UI for switching between peak and off-peak pricing. The exact UI depends on the implementation. It may be a slider, a toggle, buttons, or a time picker.
+
+Peak pricing: Switch to peak pricing. The menu shows full prices with no discount indicators.
+
+Off-peak pricing: Switch to off-peak pricing. The menu shows original prices with strikethrough and discounted prices (20% off base drink price).
+
+Test a specific order in off-peak mode:
+
+Switch to off-peak pricing
+
+Order a Large Neural Network Latte ($6.50 full price, $5.20 with 20% off)
+
+Add an extra shot (+$0.75. NOT discounted)
+
+Confirm and place the order
+
+Expected receipt values:
+
+Large Neural Network Latte .......... $6.50
+  Off-Peak Discount (20%) ........... -$1.30
+  Extra espresso shot ............... $0.75
+
+* verify command
+
+```
+/opsx-verify
+```
+
+* check the finbancial dashboard ... run a few oerders
+
+* archive
+
+```
+/opsx-verify
+```
